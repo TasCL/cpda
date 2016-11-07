@@ -278,8 +278,10 @@ DE_MCMC_2block_fun2 <- function(MCMC_params, Subject_data, Model_specifics,
 
   ## Initialize LL and prior for the first parameter set.
   for(i in 1:Nchain) {
-    LL <- Compute_log_likelihood_FFT(Subject_data=Subject_data, params=param_old[,i],
-                                     MCMC_params=MCMC_params);
+    # LL <- Compute_log_likelihood_FFT(Subject_data=Subject_data, params=param_old[,i],
+    #                                  MCMC_params=MCMC_params);
+    LL <- getLogLik(data=Subject_data, pVec=param_old[,i],
+                                      MCMC_params=MCMC_params);
     log_lik_old[1,i] <- LL;
     prior_old[1,i] <- SwitchModelPrior(pVec=param_old[,i]);
   }
@@ -322,7 +324,8 @@ DE_MCMC_2block_fun2 <- function(MCMC_params, Subject_data, Model_specifics,
       ## Compute likelihood. If the prior is 0, then just assign negative
       ## infinity to ensure it is rejected.
       if(prior_new[1,nn] != 0) {
-        LL <- Compute_log_likelihood_FFT(Subject_data,proposal[,nn],MCMC_params);
+        ##LL <- Compute_log_likelihood_FFT(Subject_data,proposal[,nn],MCMC_params);
+        LL <- getLogLik(Subject_data,proposal[,nn],MCMC_params);
         log_lik_new[1,nn] <- LL;
       } else {
         log_lik_new[1,nn] <- -Inf;
@@ -374,7 +377,8 @@ DE_MCMC_2block_fun2 <- function(MCMC_params, Subject_data, Model_specifics,
 
       ## Compute likelihood, SPECIFIC to model
       if(prior_new[1,nn] != 0) {
-        LL <- Compute_log_likelihood_FFT(Subject_data, proposal[,nn], MCMC_params);
+        ##LL <- Compute_log_likelihood_FFT(Subject_data, proposal[,nn], MCMC_params);
+        LL <- getLogLik(Subject_data, proposal[,nn], MCMC_params);
         log_lik_new[1,nn] <- LL;
       } else {
         log_lik_new[1,nn] <- -Inf
@@ -411,7 +415,8 @@ DE_MCMC_2block_fun2 <- function(MCMC_params, Subject_data, Model_specifics,
       for(nn in 1:Nchain) {
         ## Compute likelihood, SPECIFIC to model
         params <- param_chain[ii,,nn];
-        LL <-  Compute_log_likelihood_FFT(Subject_data, params, MCMC_params);
+        ##LL <-  Compute_log_likelihood_FFT(Subject_data, params, MCMC_params);
+        LL <-  getLogLik(Subject_data, params, MCMC_params);
         log_lik_old[1,nn] <- LL;
       }
     }
@@ -559,12 +564,12 @@ Compute_log_likelihood_FFT <- function(Subject_data, params, MCMC_params) {
   ## This function takes subject data, the parameters for the current chain
   ## under consideration, and MCMC parameters and computes the log likelihood.
 
-  load("data/Data1.rda")
-  Subject_data <- dplyr::tbl_dt(d)
-  params <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
-  MCMC_params <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e5,
-                     Nstep=30, Nchain=24, noise_size=.001, burnin=10,
-                     resample_mod=3)
+  # load("data/Data1.rda")
+  # Subject_data <- dplyr::tbl_dt(d)
+  # params <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
+  # MCMC_params <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e5,
+  #                    Nstep=30, Nchain=24, noise_size=.001, burnin=10,
+  #                    resample_mod=3)
 
 
   ##%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -634,10 +639,16 @@ Compute_log_likelihood_FFT <- function(Subject_data, params, MCMC_params) {
   RT_s1_after <- c(T1_s_first[ind_C1_before], T1_s_second[ind_C1_after]);
   RT_s2_after <- c(T2_s_first[ind_C2_before], T2_s_second[ind_C2_after]);
 
+  cat("RT_s1_after", length(RT_s1_after),"\n")
+  cat("RT_s2_after", length(RT_s2_after),"\n")
   ## Do FFT Smoothing
   ## Extract the minimum and masimum switch times.
   m <- min(min(C1time),min(C2time))-3*bandwidth;
   M <- max(max(C1time),max(C2time))+3*bandwidth;
+
+
+  cat("m", m,"\n")
+  cat("M", M,"\n")
 
   ## Set the histogram grid size and construct the bin centers / edges
   N_grid <- 2^10;
@@ -668,9 +679,9 @@ Compute_log_likelihood_FFT <- function(Subject_data, params, MCMC_params) {
     tmp <- hist(RT_s1_after, breaks=bin_edges, plot = FALSE, right = TRUE)
     tmp$counts[1] <- 0
     tmp$counts[length(tmp$counts)] <- 0
-    bincount <- c(tmp$counts, 0);
+    bincount1 <- c(tmp$counts, 0);
 
-    PDF1_hist <- (1 * bincount) / (dt * Nsample);
+    PDF1_hist <- (1 * bincount1) / (dt * Nsample);
 
     ## Apply the FFT
     PDF1_fft <- fft(PDF1_hist[1:(length(PDF1_hist))-1])
@@ -701,9 +712,9 @@ Compute_log_likelihood_FFT <- function(Subject_data, params, MCMC_params) {
     tmp <- hist(RT_s2_after, breaks=bin_edges, plot = FALSE, right = TRUE)
     tmp$counts[1] <- 0
     tmp$counts[length(tmp$counts)] <- 0
-    bincount <- c(tmp$counts, 0);
+    bincount2 <- c(tmp$counts, 0);
 
-    PDF2_hist <- (1 * bincount) / (dt * Nsample);
+    PDF2_hist <- (1 * bincount2) / (dt * Nsample);
 
     ## Apply the FFT
     PDF2_fft <- fft(PDF2_hist[1:(length(PDF2_hist))-1])
@@ -723,8 +734,9 @@ Compute_log_likelihood_FFT <- function(Subject_data, params, MCMC_params) {
     ## Compute the log likelihood
     LL <- LL + sum(log(PDF2));
   }
-  rm(filter)
-  return(LL)
+  ## rm(filter)
+  ## return(LL)
+  return(filter)
 }
 
 

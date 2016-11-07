@@ -30,29 +30,45 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// logLik_fft
-arma::vec logLik_fft(Rcpp::List data, Rcpp::NumericVector pVec, Rcpp::List MCMC_params);
-RcppExport SEXP pda_logLik_fft(SEXP dataSEXP, SEXP pVecSEXP, SEXP MCMC_paramsSEXP) {
+// getDTs
+Rcpp::List getDTs(Rcpp::List data, Rcpp::NumericVector pVec, Rcpp::List MCMC_params);
+RcppExport SEXP pda_getDTs(SEXP dataSEXP, SEXP pVecSEXP, SEXP MCMC_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< Rcpp::List >::type data(dataSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pVec(pVecSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type MCMC_params(MCMC_paramsSEXP);
-    __result = Rcpp::wrap(logLik_fft(data, pVec, MCMC_params));
+    __result = Rcpp::wrap(getDTs(data, pVec, MCMC_params));
     return __result;
 END_RCPP
 }
-// getPRT
-Rcpp::List getPRT(Rcpp::List data, Rcpp::NumericVector pVec, Rcpp::List MCMC_params);
-RcppExport SEXP pda_getPRT(SEXP dataSEXP, SEXP pVecSEXP, SEXP MCMC_paramsSEXP) {
+// logLik_fft
+double logLik_fft(arma::vec DT, arma::vec eDT, double m, double M, double h, int ns);
+RcppExport SEXP pda_logLik_fft(SEXP DTSEXP, SEXP eDTSEXP, SEXP mSEXP, SEXP MSEXP, SEXP hSEXP, SEXP nsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::vec >::type DT(DTSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type eDT(eDTSEXP);
+    Rcpp::traits::input_parameter< double >::type m(mSEXP);
+    Rcpp::traits::input_parameter< double >::type M(MSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    Rcpp::traits::input_parameter< int >::type ns(nsSEXP);
+    __result = Rcpp::wrap(logLik_fft(DT, eDT, m, M, h, ns));
+    return __result;
+END_RCPP
+}
+// logLik_pLBA
+double logLik_pLBA(Rcpp::List data, Rcpp::NumericVector pVec, Rcpp::List MCMC_params);
+RcppExport SEXP pda_logLik_pLBA(SEXP dataSEXP, SEXP pVecSEXP, SEXP MCMC_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< Rcpp::List >::type data(dataSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pVec(pVecSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type MCMC_params(MCMC_paramsSEXP);
-    __result = Rcpp::wrap(getPRT(data, pVec, MCMC_params));
+    __result = Rcpp::wrap(logLik_pLBA(data, pVec, MCMC_params));
     return __result;
 END_RCPP
 }

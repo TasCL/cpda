@@ -51,10 +51,63 @@ initializeStructures <- function(nmc, npar, nchain) {
     .Call('pda_initializeStructures', PACKAGE = 'pda', nmc, npar, nchain)
 }
 
+#' Retrieve Empirical and Modelled Decision Times
+#'
+#' Get decision times for two-accumulator LBA model
+#'
+#' @param data a Rcpp List for subject data
+#' @param pVec a Rcpp NumvericVector for parameter vector
+#' @param MCMC_params MCMC parameters
+#' @return A four-element list with estimated decision time for accumulator 1,
+#' accumultor 2, empirical decision time for accumualtor 1 and accumulator 2.
+#' @examples
+#' load("data/Data1.rda")
+#' p.vector <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
+#' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e2,
+#'                     Nstep=30, Nchain=24, noise_size=.001, burnin=10,
+#'                     resample_mod=3)
+#'
+#' DTs <- getDTs(d, p.vector, mcmcParams)
+#' str(DTs)
+#' @export
+getDTs <- function(data, pVec, MCMC_params) {
+    .Call('pda_getDTs', PACKAGE = 'pda', data, pVec, MCMC_params)
+}
+
 #' Compute Log-likelihood Using Fast Fourier Transform
 #'
-#' This function takes subject data, the parameters for the current chain
-#' under consideration, and MCMC parameters and computes the log likelihood.
+#' This function use Holmes's (2015) KDE method to calculate approximate
+#' log-likelihood for a two-accumulator EAM.
+#'
+#' @param DT a vector of empirical decision times
+#' @param eDT a vector of modelled decision times
+#' @param m min value
+#' @param M max value
+#' @param h KDE bandwidth
+#' @param ns number of binned samples
+#' @return Log-likelihood
+#' @references Holmes, W. (2015). A practical guide to the Probability Density
+#' Approximation (PDA) with improved implementation and error characterization.
+#' \emph{Journal of Mathematical Psychology}, \bold{68-69}, 13--24,
+#' doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
+#' @export
+#' @examples
+#' DT1 <- read.csv("data/DT1.csv", header=F)
+#' DT2 <- read.csv("data/DT2.csv", header=F)
+#' eDT1 <- read.csv("data/eDT1.csv", header=F)
+#' eDT2 <- read.csv("data/eDT2.csv", header=F)
+#' bandwidth <- .02;
+#' nsample <- 1e4
+#' m <- min(c(DT1$V1, DT2$V1)) - 3 * bandwidth
+#' M <- max(c(DT1$V1, DT2$V1)) + 3 * bandwidth
+#' logLik_fft(DT1, eDT1, m, M, bandwidth, nsample)
+logLik_fft <- function(DT, eDT, m, M, h, ns) {
+    .Call('pda_logLik_fft', PACKAGE = 'pda', DT, eDT, m, M, h, ns)
+}
+
+#' Compute FFT Log-likelihood for Piece-wise LBA Model
+#'
+#' Use logLik_fft to get probability density for a piecewise LBA model.
 #'
 #' @param data subject data
 #' @param pVec a parameter vector for piece-wise LBA Model
@@ -62,10 +115,10 @@ initializeStructures <- function(nmc, npar, nchain) {
 #' @return Log-likelihood
 #' @export
 #' @examples
-#' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e5,
+#' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e4,
 #'                   Nstep=30, Nchain=24, noise_size=.001, burnin=10,
 #'                   resample_mod=3)
-#' logLik_fft(mcmcParams)
+#'
 #' load("data/Data1.rda")
 #' dplyr::tbl_dt(d)
 #'
@@ -83,47 +136,11 @@ initializeStructures <- function(nmc, npar, nchain) {
 #' ##   9         0    0.6117150     1
 #' ##   10        0    0.6940521     1
 #' ##   ..      ...          ...   ...
-#' t0 <- as.vector(attr(d, "SwitchTime"))
-#' C1time <- as.vector(attr(d, "C1time"))
-#' C2time <- as.vector(attr(d, "C2time"))
-#' attr(d, "SwitchTime") <- NULL
-#' attr(d, "C1time")     <- NULL
-#' attr(d, "C2time")     <- NULL
-#' str(d)
-#' ## 'data.frame':	1000 obs. of  3 variables:
-#' ## $ Response    : num  0 1 0 0 1 0 1 1 0 0 ...
-#' ## $ ResponseTime: num  0.568 0.618 0.881 0.456 0.85 ...
-#' ## $ Block       : num  1 1 1 1 1 1 1 1 1 1 ...
-#' dat <- list(data=d, SwitchTime=t0, C1time=C1time, C2time=C2time)
-#' p.vector <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
-#' tmp0 <- logLik_fft(data=dat, pVec=p.vector, MCMC_params=mcmcParams)
-#' tmp1 <- dat$C2time - p.vector[7]
-#' all(tmp0==tmp2)
-#' [1] TRUE
-logLik_fft <- function(data, pVec, MCMC_params) {
-    .Call('pda_logLik_fft', PACKAGE = 'pda', data, pVec, MCMC_params)
-}
-
-#' Retrieve piecewise RTs from a pLBA Model
 #'
-#' Get piecewise RTs
-#'
-#' @param data a Rcpp List for subject data
-#' @param pVec a Rcpp NumvericVector for parameter vector
-#' @param MCMC_params MCMC parameters
-#' @return A two-element list
-#' @examples
-#' load("data/Data1.rda")
-#' p.vector <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
-#' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e2,
-#'                     Nstep=30, Nchain=24, noise_size=.001, burnin=10,
-#'                     resample_mod=3)
-#'
-#' tmp0 <- getPRT(d, p.vector, mcmcParams)
-#' str(tmp0[[1]])
-#' str(tmp0[[2]])
+#' pVec <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
+#' tmp0 <- logLik_pLBA(data=d, pVec=pVec, MCMC_params=MCMC_params)
 #' @export
-getPRT <- function(data, pVec, MCMC_params) {
-    .Call('pda_getPRT', PACKAGE = 'pda', data, pVec, MCMC_params)
+logLik_pLBA <- function(data, pVec, MCMC_params) {
+    .Call('pda_logLik_pLBA', PACKAGE = 'pda', data, pVec, MCMC_params)
 }
 
