@@ -7,6 +7,5 @@
 #' @docType package
 #' @author  Yi-Shin Lin <yishin.lin@utas.edu.au> \cr
 #' Andrew Heathcote <andrew.heathcote@utas.edu.au>
-#' @importFrom Rcpp evalCpp
 #' @useDynLib pda
 NULL
