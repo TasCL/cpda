@@ -4,60 +4,43 @@
 \alias{logLik_fft}
 \title{Compute Log-likelihood Using Fast Fourier Transform}
 \usage{
-logLik_fft(data, pVec, MCMC_params)
+logLik_fft(DT, eDT, m, M, h, ns)
 }
 \arguments{
-\item{data}{subject data}
+\item{DT}{a vector of empirical decision times}
 
-\item{pVec}{a parameter vector for piece-wise LBA Model}
+\item{eDT}{a vector of modelled decision times}
 
-\item{MCMC_params}{MCMC parameters}
+\item{m}{min value}
+
+\item{M}{max value}
+
+\item{h}{KDE bandwidth}
+
+\item{ns}{number of binned samples}
 }
 \value{
 Log-likelihood
 }
 \description{
-This function takes subject data, the parameters for the current chain
-under consideration, and MCMC parameters and computes the log likelihood.
+This function use Holmes's (2015) KDE method to calculate approximate
+log-likelihood for a two-accumulator EAM.
 }
 \examples{
-mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e5,
-                  Nstep=30, Nchain=24, noise_size=.001, burnin=10,
-                  resample_mod=3)
-logLik_fft(mcmcParams)
-load("data/Data1.rda")
-dplyr::tbl_dt(d)
-
-## Source: local data table [1,000 x 3]
-##      Response ResponseTime Block
-##         (dbl)        (dbl) (dbl)
-##   1         0    0.5676343     1
-##   2         1    0.6183177     1
-##   3         0    0.8806298     1
-##   4         0    0.4563023     1
-##   5         1    0.8496136     1
-##   6         0    0.5866219     1
-##   7         1    0.6482302     1
-##   8         1    0.3510035     1
-##   9         0    0.6117150     1
-##   10        0    0.6940521     1
-##   ..      ...          ...   ...
-t0 <- as.vector(attr(d, "SwitchTime"))
-C1time <- as.vector(attr(d, "C1time"))
-C2time <- as.vector(attr(d, "C2time"))
-attr(d, "SwitchTime") <- NULL
-attr(d, "C1time")     <- NULL
-attr(d, "C2time")     <- NULL
-str(d)
-## 'data.frame':	1000 obs. of  3 variables:
-## $ Response    : num  0 1 0 0 1 0 1 1 0 0 ...
-## $ ResponseTime: num  0.568 0.618 0.881 0.456 0.85 ...
-## $ Block       : num  1 1 1 1 1 1 1 1 1 1 ...
-dat <- list(data=d, SwitchTime=t0, C1time=C1time, C2time=C2time)
-p.vector <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
-tmp0 <- logLik_fft(data=dat, pVec=p.vector, MCMC_params=mcmcParams)
-tmp1 <- dat$C2time - p.vector[7]
-all(tmp0==tmp2)
-[1] TRUE
+DT1 <- read.csv("data/DT1.csv", header=F)
+DT2 <- read.csv("data/DT2.csv", header=F)
+eDT1 <- read.csv("data/eDT1.csv", header=F)
+eDT2 <- read.csv("data/eDT2.csv", header=F)
+bandwidth <- .02;
+nsample <- 1e4
+m <- min(c(DT1$V1, DT2$V1)) - 3 * bandwidth
+M <- max(c(DT1$V1, DT2$V1)) + 3 * bandwidth
+logLik_fft(DT1, eDT1, m, M, bandwidth, nsample)
+}
+\references{
+Holmes, W. (2015). A practical guide to the Probability Density
+Approximation (PDA) with improved implementation and error characterization.
+\emph{Journal of Mathematical Psychology}, \bold{68-69}, 13--24,
+doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
 }
 

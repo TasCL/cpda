@@ -16,7 +16,7 @@ Maintainer: Yi-Shin Lin <yishin.lin@utas.edu.au>
 Date/Publication: 2016-10-21 10:44:30
 LazeData: TRUE
 Imports:
-    pracma (>= 1.8.8), Rcpp (>= 0.12.3), stats (>= 3.3.0)
+    pracma (>= 1.8.8), Rcpp (>= 0.12.3), stats (>= 3.2.3)
 LinkingTo: Rcpp (>= 0.12.3), RcppArmadillo (>= 0.6.700.6.0)
 RoxygenNote: 5.0.1
 NeedsCompilation: yes
