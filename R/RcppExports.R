@@ -76,8 +76,8 @@ getDTs <- function(data, pVec, MCMC_params) {
 
 #' Compute Log-likelihood Using Fast Fourier Transform
 #'
-#' This function use Holmes's (2015) KDE method to calculate approximate
-#' log-likelihood for a two-accumulator EAM.
+#' This function implements Holmes's (2015) KDE-FFT method to calculate
+#' approximate probability density.
 #'
 #' @param DT a vector of empirical decision times
 #' @param eDT a vector of modelled decision times
@@ -100,7 +100,8 @@ getDTs <- function(data, pVec, MCMC_params) {
 #' nsample <- 1e4
 #' m <- min(c(DT1$V1, DT2$V1)) - 3 * bandwidth
 #' M <- max(c(DT1$V1, DT2$V1)) + 3 * bandwidth
-#' logLik_fft(DT1, eDT1, m, M, bandwidth, nsample)
+#' logLik_fft(DT1$V1, eDT1$V1, m, M, bandwidth, nsample)
+#' logLik_fft(DT2$V1, eDT2$V1, m, M, bandwidth, nsample)
 logLik_fft <- function(DT, eDT, m, M, h, ns) {
     .Call('pda_logLik_fft', PACKAGE = 'pda', DT, eDT, m, M, h, ns)
 }

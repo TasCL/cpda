@@ -23,8 +23,8 @@ logLik_fft(DT, eDT, m, M, h, ns)
 Log-likelihood
 }
 \description{
-This function use Holmes's (2015) KDE method to calculate approximate
-log-likelihood for a two-accumulator EAM.
+This function implements Holmes's (2015) KDE-FFT method to calculate
+approximate probability density.
 }
 \examples{
 DT1 <- read.csv("data/DT1.csv", header=F)
@@ -35,7 +35,8 @@ bandwidth <- .02;
 nsample <- 1e4
 m <- min(c(DT1$V1, DT2$V1)) - 3 * bandwidth
 M <- max(c(DT1$V1, DT2$V1)) + 3 * bandwidth
-logLik_fft(DT1, eDT1, m, M, bandwidth, nsample)
+logLik_fft(DT1$V1, eDT1$V1, m, M, bandwidth, nsample)
+logLik_fft(DT2$V1, eDT2$V1, m, M, bandwidth, nsample)
 }
 \references{
 Holmes, W. (2015). A practical guide to the Probability Density

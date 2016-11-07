@@ -4,8 +4,7 @@
 \alias{DE_MCMC_2block_fun}
 \title{Calculate Gaussian Log-likelihood and Probability Density}
 \usage{
-DE_MCMC_2block_fun(MCMC_params, Subject_data, Model_specifics, savename,
-  report = 100)
+DE_MCMC_2block_fun(MCMC_params, Subject_data, Model_specifics, report = 100)
 }
 \arguments{
 \item{MCMC_params}{Provides all MCMC and KDE parameters along with a
@@ -16,10 +15,10 @@ few other things}
 \item{Model_specifics}{Stores function handles and block information
 for the model}
 
-\item{savename}{Specifies where you want the MCMC output stored.}
-
 \item{report}{the iteration interval of returning a progress report.
 Default 100}
+
+\item{savename}{Specifies where you want the MCMC output stored.}
 
 \item{...}{other arguments}
 }
