@@ -28,6 +28,14 @@ DE_MCMC_2block_fun <- function(MCMC_params, Subject_data, Model_specifics,
   ## Translated from William R. Holmes's MATLAB codes
   ##%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+  # load("data/Data1.rda")
+  # Model_specifics <- list(block_1_ind=c(1,2,4,7),  ## A, muv1, muv2, t_er
+  #   block_2_ind=c(3,5,6))    ## muw1, muw2, t_delay
+  # MCMC_params <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e5,
+  #   Nstep=30, Nchain=24, noise_size=.001, burnin=10,
+  #   resample_mod=3)
+  # report=100
+
   ## Extract some model specifics
   block_1_ind <- Model_specifics$block_1_ind;
   block_2_ind <- Model_specifics$block_2_ind;
@@ -45,7 +53,8 @@ DE_MCMC_2block_fun <- function(MCMC_params, Subject_data, Model_specifics,
 
   ## Initialize data structures and stagnation counter
   nparameter <- length(block_1_ind)+length(block_2_ind)
-  init <- initialize_structures(nmc=Nstep, npar=nparameter, nchain=Nchain, b=2.7)
+  init <- pda::initialize_structures(nmc=Nstep, npar=nparameter,
+    nchain=Nchain, b=2.7)
 
   init$direction[,1] <- NA
   direction <- init$direction[,1]
@@ -63,8 +72,8 @@ DE_MCMC_2block_fun <- function(MCMC_params, Subject_data, Model_specifics,
 
   ## Initialize LL and prior for the first parameter set.
   for(i in 1:Nchain) {
-    LL <- Compute_log_likelihood_FFT(Subject_data=Subject_data, params=param_old[,i],
-      MCMC_params=MCMC_params);
+    LL <- Compute_log_likelihood_FFT(Subject_data=Subject_data,
+      params=param_old[,i], MCMC_params=MCMC_params);
     log_lik_old[1,i] <- LL;
     prior_old[1,i] <- SwitchModel_Prior(pVec=param_old[,i]);
   }
@@ -92,7 +101,8 @@ DE_MCMC_2block_fun <- function(MCMC_params, Subject_data, Model_specifics,
 
       ## Note that we are only updating the first block of parameters in
       ## the proposal here.
-      direction[block_1_ind] <- param_old[block_1_ind,ind1]-param_old[block_1_ind,ind2];
+      direction[block_1_ind] <- param_old[block_1_ind,ind1]-
+        param_old[block_1_ind,ind2];
       direction[block_2_ind] <- 0;
 
       gamma <- gamma_1;

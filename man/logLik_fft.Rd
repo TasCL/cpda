@@ -27,8 +27,8 @@ This function implements Holmes's (2015) KDE-FFT method to calculate
 approximate probability density.
 }
 \examples{
-DT1 <- read.csv("data/DT1.csv", header=F)
-DT2 <- read.csv("data/DT2.csv", header=F)
+DT1  <- read.csv("data/DT1.csv", header=F)
+DT2  <- read.csv("data/DT2.csv", header=F)
 eDT1 <- read.csv("data/eDT1.csv", header=F)
 eDT2 <- read.csv("data/eDT2.csv", header=F)
 bandwidth <- .02;

@@ -43,6 +43,23 @@ dplyr::tbl_dt(d)
 ##   ..      ...          ...   ...
 
 pVec <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
-tmp0 <- logLik_pLBA(data=d, pVec=pVec, MCMC_params=MCMC_params)
+tmp0 <- Compute_log_likelihood_FFT(d, pVec, mcmcParams)
+tmp1 <- logLik_pLBA(d, pVec, mcmcParams)
+
+require(rbenchmark)
+within(benchmark(R=Compute_log_likelihood_FFT(d, pVec, mcmcParams),
+  Cpp=logLik_pLBA(d, pVec, mcmcParams),
+  replications=rep(1e2, 3),
+  columns=c('test', 'replications', 'elapsed'),
+  order=c('test', 'replications')),
+  { average = elapsed/replications })
+##     test replications elapsed average
+##  2  Cpp          100   0.736 0.00736
+##  4  Cpp          100   0.737 0.00737
+##  6  Cpp          100   0.736 0.00736
+##  1    R          100   1.037 0.01037
+##  3    R          100   0.922 0.00922
+##  5    R          100   0.922 0.00922
+
 }
 

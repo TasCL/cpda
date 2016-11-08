@@ -7,12 +7,12 @@
 using namespace Rcpp;
 
 // SwitchModelPrior
-double SwitchModelPrior(Rcpp::NumericVector pVec);
+double SwitchModelPrior(arma::vec pVec);
 RcppExport SEXP pda_SwitchModelPrior(SEXP pVecSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pVec(pVecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
     __result = Rcpp::wrap(SwitchModelPrior(pVec));
     return __result;
 END_RCPP
@@ -31,13 +31,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // getDTs
-Rcpp::List getDTs(Rcpp::List data, Rcpp::NumericVector pVec, Rcpp::List MCMC_params);
+Rcpp::List getDTs(Rcpp::List data, arma::vec pVec, Rcpp::List MCMC_params);
 RcppExport SEXP pda_getDTs(SEXP dataSEXP, SEXP pVecSEXP, SEXP MCMC_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< Rcpp::List >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pVec(pVecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type MCMC_params(MCMC_paramsSEXP);
     __result = Rcpp::wrap(getDTs(data, pVec, MCMC_params));
     return __result;
@@ -60,15 +60,54 @@ BEGIN_RCPP
 END_RCPP
 }
 // logLik_pLBA
-double logLik_pLBA(Rcpp::List data, Rcpp::NumericVector pVec, Rcpp::List MCMC_params);
+double logLik_pLBA(Rcpp::List data, arma::vec pVec, Rcpp::List MCMC_params);
 RcppExport SEXP pda_logLik_pLBA(SEXP dataSEXP, SEXP pVecSEXP, SEXP MCMC_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< Rcpp::List >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pVec(pVecSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type MCMC_params(MCMC_paramsSEXP);
     __result = Rcpp::wrap(logLik_pLBA(data, pVec, MCMC_params));
+    return __result;
+END_RCPP
+}
+// init
+arma::mat init(Rcpp::List data, Rcpp::List MCMC_params, Rcpp::List Model_specifics, double gammaMult);
+RcppExport SEXP pda_init(SEXP dataSEXP, SEXP MCMC_paramsSEXP, SEXP Model_specificsSEXP, SEXP gammaMultSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type MCMC_params(MCMC_paramsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type Model_specifics(Model_specificsSEXP);
+    Rcpp::traits::input_parameter< double >::type gammaMult(gammaMultSEXP);
+    __result = Rcpp::wrap(init(data, MCMC_params, Model_specifics, gammaMult));
+    return __result;
+END_RCPP
+}
+// pick_2chains
+arma::vec pick_2chains(int k, std::vector<int> chains);
+RcppExport SEXP pda_pick_2chains(SEXP kSEXP, SEXP chainsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type chains(chainsSEXP);
+    __result = Rcpp::wrap(pick_2chains(k, chains));
+    return __result;
+END_RCPP
+}
+// run
+arma::vec run(Rcpp::List MCMC_params, Rcpp::List Model_specifics, int report);
+RcppExport SEXP pda_run(SEXP MCMC_paramsSEXP, SEXP Model_specificsSEXP, SEXP reportSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::List >::type MCMC_params(MCMC_paramsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type Model_specifics(Model_specificsSEXP);
+    Rcpp::traits::input_parameter< int >::type report(reportSEXP);
+    __result = Rcpp::wrap(run(MCMC_params, Model_specifics, report));
     return __result;
 END_RCPP
 }

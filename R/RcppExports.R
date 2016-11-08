@@ -92,8 +92,8 @@ getDTs <- function(data, pVec, MCMC_params) {
 #' doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
 #' @export
 #' @examples
-#' DT1 <- read.csv("data/DT1.csv", header=F)
-#' DT2 <- read.csv("data/DT2.csv", header=F)
+#' DT1  <- read.csv("data/DT1.csv", header=F)
+#' DT2  <- read.csv("data/DT2.csv", header=F)
 #' eDT1 <- read.csv("data/eDT1.csv", header=F)
 #' eDT2 <- read.csv("data/eDT2.csv", header=F)
 #' bandwidth <- .02;
@@ -139,9 +139,103 @@ logLik_fft <- function(DT, eDT, m, M, h, ns) {
 #' ##   ..      ...          ...   ...
 #'
 #' pVec <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
-#' tmp0 <- logLik_pLBA(data=d, pVec=pVec, MCMC_params=MCMC_params)
+#' tmp0 <- Compute_log_likelihood_FFT(d, pVec, mcmcParams)
+#' tmp1 <- logLik_pLBA(d, pVec, mcmcParams)
+#'
+#' require(rbenchmark)
+#' within(benchmark(R=Compute_log_likelihood_FFT(d, pVec, mcmcParams),
+#'   Cpp=logLik_pLBA(d, pVec, mcmcParams),
+#'   replications=rep(1e2, 3),
+#'   columns=c('test', 'replications', 'elapsed'),
+#'   order=c('test', 'replications')),
+#'   { average = elapsed/replications })
+#' ##     test replications elapsed average
+#' ##  2  Cpp          100   0.736 0.00736
+#' ##  4  Cpp          100   0.737 0.00737
+#' ##  6  Cpp          100   0.736 0.00736
+#' ##  1    R          100   1.037 0.01037
+#' ##  3    R          100   0.922 0.00922
+#' ##  5    R          100   0.922 0.00922
+#'
 #' @export
 logLik_pLBA <- function(data, pVec, MCMC_params) {
     .Call('pda_logLik_pLBA', PACKAGE = 'pda', data, pVec, MCMC_params)
+}
+
+#' Initialise a Piecewise LBA Sample
+#'
+#' Generate a Bayesian initial sample
+#'
+#' @param data the choice-RT data from subjects to be fit.
+#' @param MCMC_params Provides all MCMC and KDE parameters along with a
+#' few other things
+#' @param Model_specifics Stores function handles and block information
+#' for the model
+#' @param gammaMult default 2.38
+#' @param report the iteration interval of returning a progress report.
+#' @return the chain parameter information (param_chain). This ends up
+#' saved in a data file however. The matrix has a structure
+#' \code{param_chain(MCMC_iteration,parameter num,chain num)}
+#' Default 100
+#' @keywords demc
+#' @examples
+#' load("data/Data1.rda")
+#' dplyr::tbl_dt(d)
+#' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e4,
+#' Nstep=30, Nchain=24, noise_size=.001, burnin=10, resample_mod=3,
+#' start=1)
+#' ## Group parameters into MCMC blocks; should follow the order
+#' mod <- list(block_1_ind=c(1,2,4,7),  ## A, muv1, muv2, t_er
+#'              block_2_ind=c(3,5,6))    ## muw1, muw2, t_delay
+#' tmp0 <- init(data=d, MCMC_params = mcmcParams, Model_specifics = mod)
+#' @export
+init <- function(data, MCMC_params, Model_specifics, gammaMult = 2.38) {
+    .Call('pda_init', PACKAGE = 'pda', data, MCMC_params, Model_specifics, gammaMult)
+}
+
+#' Pick Two Other Chains Randomly
+#'
+#' This is part of the algorithm of DE-MC. The function picks two other
+#' chains, except the currently processed one.
+#'
+#' @param k an integer indicating which chain is currently running. This has
+#' to be an integer and with the range of 0 to nchain-1. There is no check to
+#' preventing the function from crashing, if the user enter an irregular
+#' number.
+#' @param chains an integer vector (std::vector) from 0 to nchain-1.
+#' @return an Armadillo vector
+#' @keywords pick_2chains
+#' @examples
+#' nchain <- 24
+#' chainSeq <- (1:24)-1
+#' pick_2chains(3, chainSeq)
+#' @export
+pick_2chains <- function(k, chains) {
+    .Call('pda_pick_2chains', PACKAGE = 'pda', k, chains)
+}
+
+#' Use DEMC Sampler to Fit a Hierarchical Bayesian Model
+#'
+#' Run DEMC-EAM Fit
+#'
+#' @param MCMC_params Provides all MCMC and KDE parameters along with a
+#' few other things
+#' @param Model_specifics Stores function handles and block information
+#' for the model
+#' @return 0
+#' @keywords demc
+#' @examples
+#' load("data/Data1.rda")
+#' dplyr::tbl_dt(d)
+#' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e4,
+#' Nstep=30, Nchain=24, noise_size=.001, burnin=10, resample_mod=3,
+#' start=1)
+#' ## Group parameters into MCMC blocks; should follow the order
+#' mod <- list(block_1_ind=c(1,2,4,7),  ## A, muv1, muv2, t_er
+#'              block_2_ind=c(3,5,6))    ## muw1, muw2, t_delay
+#' tmp0 <- run(MCMC_params=mcmcParams, Model_specifics=mod)
+#' @export
+run <- function(MCMC_params, Model_specifics, report = 100L) {
+    .Call('pda_run', PACKAGE = 'pda', MCMC_params, Model_specifics, report)
 }
 
