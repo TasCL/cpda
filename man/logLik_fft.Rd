@@ -2,41 +2,60 @@
 % Please edit documentation in R/RcppExports.R
 \name{logLik_fft}
 \alias{logLik_fft}
-\title{Compute Log-likelihood Using Fast Fourier Transform}
+\alias{logLik_fft2}
+\title{Compute Log-likelihood Using KDE-based Fast Fourier Transform}
 \usage{
-logLik_fft(DT, eDT, m, M, h, ns)
+logLik_fft(y, yhat, m, M, h, ns)
+
+logLik_fft2(y, yhat, m, M, h, ns)
 }
 \arguments{
-\item{DT}{a vector of empirical decision times}
+\item{y}{a vector storing empirical data (e.g., RTs)}
 
-\item{eDT}{a vector of modelled decision times}
+\item{yhat}{a vector storing simulated data (e.g., simualted RTs, using a
+LBA model).}
 
-\item{m}{min value}
+\item{m}{minimal value extracted from the empirical data vector}
 
-\item{M}{max value}
+\item{M}{max value extracted from the empirical data vector}
 
 \item{h}{KDE bandwidth}
 
-\item{ns}{number of binned samples}
+\item{ns}{number of simulate data}
 }
 \value{
 Log-likelihood
 }
 \description{
 This function implements Holmes's (2015) KDE-FFT method to calculate
-approximate probability density.
+approximated probability density. The precision is set at 10 (ie 2^10).
+Please use \code{logLik_fft2}, if you want also the PDF, grid centers, and
+PDF_hist outputs.
 }
 \examples{
-DT1  <- read.csv("data/DT1.csv", header=F)
-DT2  <- read.csv("data/DT2.csv", header=F)
-eDT1 <- read.csv("data/eDT1.csv", header=F)
-eDT2 <- read.csv("data/eDT2.csv", header=F)
+## Use piecewise LBA data as an example
+data(lba)
 bandwidth <- .02;
 nsample <- 1e4
-m <- min(c(DT1$V1, DT2$V1)) - 3 * bandwidth
-M <- max(c(DT1$V1, DT2$V1)) + 3 * bandwidth
-logLik_fft(DT1$V1, eDT1$V1, m, M, bandwidth, nsample)
-logLik_fft(DT2$V1, eDT2$V1, m, M, bandwidth, nsample)
+m <- min(c(plba$DT1, plba$DT2)) - 3 * bandwidth
+M <- max(c(plba$DT1, plba$DT2)) + 3 * bandwidth
+logLik_fft(plba$DT1, plba$eDT1, m, M, bandwidth, nsample)
+logLik_fft(plba$DT2, plba$eDT2, m, M, bandwidth, nsample)
+tmp1 <- logLik_fft2(plba$DT1, plba$eDT1, m, M, bandwidth, nsample)
+tmp2 <- logLik_fft2(plba$DT2, plba$eDT2, m, M, bandwidth, nsample)
+str(tmp1)
+
+## List of 4
+## $ LL      : num 33.9
+## $ PDF     : num [1:695, 1] 1.761 0.445 1.368 1.681 1.542 ...
+## $ z       : num [1:1024, 1] 0.157 0.159 0.16 0.161 0.162 ...
+## $ PDF_hist: num [1:1025, 1] 0 0 0 0 0 0 0 0 0 0 ...
+str(tmp2)
+## List of 4
+## $ LL      : num -323
+## $ PDF     : num [1:305, 1] 0.5526 0.2489 0.5588 0.0579 0.3016 ...
+## $ z       : num [1:1024, 1] 0.157 0.159 0.16 0.161 0.162 ...
+## $ PDF_hist: num [1:1025, 1] 0 0 0 0 0 0 0 0 0 0 ...
 }
 \references{
 Holmes, W. (2015). A practical guide to the Probability Density

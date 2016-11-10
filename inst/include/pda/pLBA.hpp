@@ -1,7 +1,13 @@
 #include <RcppArmadillo.h>
 
-double SwitchModelPrior(Rcpp::NumericVector pVec) ;
-Rcpp::List initializeStructures(const int nmc, const int npar, const int nchain) ;
-arma::vec logLik_fft(Rcpp::List data, Rcpp::NumericVector pVec, Rcpp::List MCMC_params) ;
-arma::mat init(Rcpp::List data, Rcpp::List MCMC_params,
-  Rcpp::List Model_specifics, double gammaMult, int report) ;
+inline arma::vec getEdges(arma::vec z) ;
+arma::vec getFilter(double m, double M, double bandwidth) ;
+arma::vec pmax(arma::vec v, double min) ;
+Rcpp::List rplba(arma::mat data, arma::vec pVec, arma::vec setting) ;
+double logLik_fft(arma::vec y, arma::vec yhat, double m, double M,
+  double h, int ns) ;
+Rcpp::List logLik_fft2(arma::vec y, arma::vec yhat, double m, double M,
+  double h, int ns) ;
+double logLik_norm(arma::vec object, arma::vec pVec, arma::vec setting) ;
+Rcpp::List logLik_norm2(arma::vec object, arma::vec pVec, arma::vec setting) ;
+

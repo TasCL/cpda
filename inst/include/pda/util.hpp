@@ -23,7 +23,3 @@ RcppExport SEXP rtn_wrapper(const SEXP mean_, const SEXP sd_,
 RcppExport SEXP dtn_wrapper(const SEXP x_, const SEXP mean_, const SEXP sd_,
   const SEXP lower_, const SEXP upper_, const SEXP islog_);
 
-Rcpp::List getPRT(Rcpp::List data, Rcpp::NumericVector pVec,
-  Rcpp::List MCMC_params) ;
-arma::vec getFilter(double m, double M, double bandwidth);
-arma::vec logLik(Rcpp::List data, Rcpp::NumericVector pVec, Rcpp::List MCMC_params) ;

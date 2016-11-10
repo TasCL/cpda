@@ -1,6 +1,12 @@
 #include <pda.hpp>
 
-inline arma::vec getEdges(arma::vec z) {
+struct genInt {
+  int x ;
+  genInt() {x=0;}
+  int operator()() {return x++;}
+} generateInteger; // class generator:
+
+arma::vec getEdges(arma::vec z) {
   // Get bin_edges
   double dt   = z[1] - z[0] ;
   arma::vec term1 = z - dt/2 ;
@@ -16,139 +22,21 @@ arma::vec getFilter(double m, double M, double bandwidth) {
   arma::vec freqSpace = arma::linspace<arma::vec>(0, 1, 1 + (std::pow(2, 10)/2)) ;
   arma::vec freq = tmp0 * freqSpace ;
 
-  // fliplr(): generate a copy of matrix X, with the order of the columns
-  // reversed
+  // fliplr(): generate a copy of matrix X, with reversed columns order
   arma::vec freq2   = arma::pow(freq, 2) ;
   double bandwidth2 = std::pow(bandwidth, 2) ;
   arma::vec fil0    = arma::exp(-0.5 * bandwidth2 * freq2) ;
   arma::vec fil1    = flipud(fil0.rows(1, (fil0.size() - 2)));
   arma::vec out     = join_cols(fil0, fil1) ;
-
   return out ;
 }
 
 arma::vec pmax(arma::vec v, double min) {
-  for(int i=0; i<v.size(); i++) {
-    if (v[i] < min) {v[i] = min;}
+  for (arma::vec::iterator it=v.begin(); it!=v.end(); it++)
+  {
+    if (*it < min) *it = min ;
   }
   return v ;
-}
-
-// class generator:
-struct c_unique {
-  int current ;
-  c_unique() {current=0;}
-  int operator()() {return current++;}
-} UniqueNumber ;
-
-//' Switch Model's Prior Distributions
-//'
-//' This Rcpp function computes the prior for the given parameter set. The
-//' prior for each parameter here is just a uniform distribution for
-//' simplicity.
-//'
-//' @param pVec a parameter vector. Similar to DMC's p.vector
-//' @return a prior probability density summed across parameters
-//' @import Rcpp
-//' @export
-//' @examples
-//' p.vector <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
-//' SwitchModelPrior(pVec=p.vector)
-//' require(rbenchmark)
-//' within(benchmark(R=SwitchModel_Prior(p.vector),
-//'                  Cpp=SwitchModelPrior(p.vector),
-//'                  replications=rep(1e4, 3),
-//'                  columns=c('test', 'replications', 'elapsed'),
-//'                  order=c('test', 'replications')),
-//'                  { average = elapsed/replications })
-//' #   test replications elapsed  average
-//' # 2  Cpp        10000   0.048 4.80e-06
-//' # 4  Cpp        10000   0.032 3.20e-06
-//' # 6  Cpp        10000   0.056 5.60e-06
-//' # 1    R        10000   0.151 1.51e-05
-//' # 3    R        10000   0.182 1.82e-05
-//' # 5    R        10000   0.142 1.42e-05
-// [[Rcpp::export]]
-double SwitchModelPrior(arma::vec pVec) {
-   // b    A       muv1    muw1    muv2    muw2    t_delay t_ND
-   // 2.7  pVec[0] pVec[1] pVec[2] pVec[3] pVec[4] pVec[5] pVec[6]
-   double b = 2.7 ;
-   bool A_range    = (pVec[0] <  0 || pVec[0] > 10) ;
-   bool b_range    = (b <  0 || b > 10) ;
-   bool muv1_range = (pVec[1] < -3 || pVec[1] > 7) ;
-   bool muw1_range = (pVec[2] < -3 || pVec[2] > 7) ;
-   bool muv2_range = (pVec[3] < -3 || pVec[3] > 7) ;
-   bool muw2_range = (pVec[4] < -3 || pVec[4] > 7) ;
-   bool t_delay_range = (pVec[5] < 0 || pVec[5] > 1) ;
-   bool t_ND_range    = (pVec[6] < 0 || pVec[6] > 1) ;
-
-   double pA = A_range ? 0 : 0.1 ;
-   double pb = b_range ? 0 : 0.1 ;
-   double pV1 = muv1_range ? 0 : 0.1 ;
-   double pV2 = muv2_range ? 0 : 0.1 ;
-   double pW1 = muw1_range ? 0 : 0.1 ;
-   double pW2 = muw2_range ? 0 : 0.1 ;
-   double pT = t_delay_range ? 0 : 1 ;
-   double pND = t_ND_range ? 0 : 1 ;
-
-   double prior = pA*pb*pT*pV1*pV2*pW1*pW2*pND ;
-   return(prior) ;
-}
-
-//' Initialize a DMC Sample
-//'
-//' This functions initializes the initial conditions and various data structures
-//' for the MCMC, using C++
-//'
-//' @param nmc number of MCMC iteration (steps).
-//' @param npar number of parameter.
-//' @param nchain number of chains
-//' @keywords initialize_structures
-//' @return a list with 7 elements: param_old, param_chain, proposal, direction,
-//' LL_keep, nmc, and nchain
-//' @import Rcpp
-//' @export
-//' @examples
-//' initializeStructures(nmc=20, npar=7, nchain=3)
-// [[Rcpp::export]]
-Rcpp::List initializeStructures(const int nmc,
-                               const int npar,
-                               const int nchain)
-{
-  double b = 2.7 ;
-  Rcpp::NumericMatrix param_old(npar, nchain) ;
-
-  param_old(0, Rcpp::_) = b*Rcpp::rnorm(nchain) ;  // A
-  param_old(1, Rcpp::_) = 5*Rcpp::runif(nchain) ;  // muv1
-  param_old(2, Rcpp::_) = 5*Rcpp::runif(nchain) ;  // muw1
-  param_old(3, Rcpp::_) = 5*Rcpp::runif(nchain) ;  // muv2
-  param_old(4, Rcpp::_) = 5*Rcpp::runif(nchain) ;  // muw2
-  param_old(5, Rcpp::_) = .5*Rcpp::runif(nchain) ; // t_delay
-  param_old(6, Rcpp::_) = .5*Rcpp::runif(nchain) ; // t_nd
-
-  arma::cube param_chain(npar, nchain, nmc) ; // storing the MCMC iteration
-  arma::mat proposal(npar, nchain) ;  // storing the temporary proposal.
-  arma::mat direction(npar, nchain) ;
-  arma::mat LL_keep(nmc, nchain) ;
-
-  param_chain.fill(NA_REAL) ;
-  proposal.fill(NA_REAL) ;
-  direction.fill(NA_REAL) ;
-  LL_keep.fill(NA_REAL) ;
-
-  // Populate first value of the chain with initial guess
-  param_chain.slice(0) = Rcpp::as<arma::mat>(param_old) ;
-
-  Rcpp::List samples_out     = Rcpp::List::create(
-  Rcpp::Named("param_old")   = param_old,
-  Rcpp::Named("param_chain") = param_chain,
-  Rcpp::Named("proposal")    = proposal,
-  Rcpp::Named("direction")   = direction,
-  Rcpp::Named("LL_keep")     = LL_keep,
-  Rcpp::Named("nmc")         = nmc,
-  Rcpp::Named("nchains")     = nchain) ;
-
-  return samples_out;
 }
 
 //' Retrieve Empirical and Modelled Decision Times
@@ -157,39 +45,54 @@ Rcpp::List initializeStructures(const int nmc,
 //'
 //' @param data a Rcpp List for subject data
 //' @param pVec a Rcpp NumvericVector for parameter vector
-//' @param MCMC_params MCMC parameters
+//' @param setting a named numeric vector storing DE and MCMC parameters:
+//' sigma_exact, bandwidth, ns (nsample), nmc, nchain, rp (DE noise,
+//' usually .001), burnin, nthin, start (usually 1), gammaMult (DE gamma,
+//' usually 2.38), ST (piecewise LBA switch time, depending on experimental
+//' design), and report
 //' @return A four-element list with estimated decision time for accumulator 1,
 //' accumultor 2, empirical decision time for accumualtor 1 and accumulator 2.
-//' @examples
-//' load("data/Data1.rda")
-//' p.vector <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
-//' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e2,
-//'                     Nstep=30, Nchain=24, noise_size=.001, burnin=10,
-//'                     resample_mod=3)
-//'
-//' DTs <- getDTs(d, p.vector, mcmcParams)
-//' str(DTs)
 //' @export
+//' @examples
+//' data(lba)
+//' dMat <- data.matrix(d)
+//'
+//' ##  A       muv1    muw1    muv2    muw2    t_delay t_ND    b
+//' p.vector <- c(A=1.51, muv1=3.32, muw1=1.51, muv2=2.24, muw2=3.69,
+//'               t_delay=0.31, t_ND=0.08, b=2.7)
+//' setting <- c(sigma_exact=1, bandwidth=.02, ns=1e2, nmc=30, nchain=24,
+//'              rp=.001, burnin=10, nthin=3, start=1, gammaMult=2.38,
+//'              ST=attr(d, "SwitchTime"), report=100)
+//'
+//' DTs <- pda::rplba(dMat, p.vector, setting)
+//' str(DTs)
+//'
+//' ## List of 4
+//' ## $ eDT1: num [1:72, 1] 0.317 0.425 0.71 0.345 0.526 ...
+//' ## $ eDT2: num [1:28, 1] 0.45 0.418 0.56 0.719 0.313 ...
+//' ## $ DT1 : num [1:695, 1] 0.488 0.801 0.376 0.507 0.532 ...
+//' ## $ DT2 : num [1:305, 1] 0.538 0.77 0.568 0.271 0.881 ...
 // [[Rcpp::export]]
-Rcpp::List getDTs(Rcpp::List data, arma::vec pVec, Rcpp::List MCMC_params) {
-  double sigma     = MCMC_params["sigma_exact"] ; // the fixed parameter sigma
-  int nsample      = MCMC_params["LL_NSAMPLE"] ;
+Rcpp::List rplba(arma::mat data, arma::vec pVec, arma::vec setting) {
+  double sigma = setting[0] ; // sigma_exact ; // the fixed parameter sigma
+  int nsample  = setting[2] ; // LL_NSAMPLE ;
+  arma::vec choice = data.col(0) ;   // Response ResponseTime Block; 0==error; 1==correct
+  arma::vec rt     = data.col(1) ;
+  arma::uvec idx0  = find(choice == 0) ; // error
+  arma::uvec idx1  = find(choice == 1) ; // correct
+  arma::vec C1time  = rt.rows(idx0) ; // error RT
+  arma::vec C2time  = rt.rows(idx1) ; // correct RT
 
-  // pVec
-  // b    A       muv1    muw1    muv2    muw2    t_delay t_ND
-  // 2.7  pVec[0] pVec[1] pVec[2] pVec[3] pVec[4] pVec[5] pVec[6]
-  double t_ND = pVec[6] ;
-  double ST = data.attr("SwitchTime") ;
-  arma::vec C1time = data.attr("C1time") ;
-  arma::vec C2time = data.attr("C2time") ;
-  arma::vec DT1 = C1time - t_ND ; // Subtract off the non decision time
-  arma::vec DT2 = C2time - t_ND ;
-  double T0 = ST + pVec[5] ;  // the delay time + switch time.
+  // A       muv1    muw1    muv2    muw2    t_delay t_ND    b
+  // pVec[0] pVec[1] pVec[2] pVec[3] pVec[4] pVec[5] pVec[6] pVec[7]
+  arma::vec DT1 = C1time - pVec[6] ; // Subtract off the non decision time
+  arma::vec DT2 = C2time - pVec[6] ;
+  double T0 = setting[10] + pVec[5] ;  // the delay time + switch time.
 
   // Do sampling. Run LL_NSAMPLE sets of accumulators forward in time
   // and see which one terminates first.
-  arma::vec x1 = pVec[0]*Rcpp::runif(nsample) ; // Uniform, start point
-  arma::vec x2 = pVec[0]*Rcpp::runif(nsample) ; // Uniform, start point
+  arma::vec x1 = pVec[0]*arma::randu(nsample) ; // Uniform, start point
+  arma::vec x2 = pVec[0]*arma::randu(nsample) ; // Uniform, start point
 
   arma::vec v1(nsample);
   arma::vec w1(nsample);
@@ -225,6 +128,13 @@ Rcpp::List getDTs(Rcpp::List data, arma::vec pVec, Rcpp::List MCMC_params) {
   arma::vec eDT1 = arma::join_cols(A1P1.elem( A1WinB ), A1P2.elem( A1WinA )) ;
   arma::vec eDT2 = arma::join_cols(A2P1.elem( A2WinB ), A2P2.elem( A2WinA )) ;
 
+  // std::map <std::string, arma::vec> map0;
+  // map0["eDT1"] = eDT1 ;
+  // map0["eDT2"] = eDT2 ;
+  // map0["DT1"]  = DT1 ;
+  // map0["DT2"]  = DT2 ;
+  // arma::vec tmp0 = map0["eDT1"] ;
+
   Rcpp::List out = Rcpp::List::create(
     Rcpp::Named("eDT1") = eDT1,  // A1
     Rcpp::Named("eDT2") = eDT2,  // A2
@@ -233,18 +143,20 @@ Rcpp::List getDTs(Rcpp::List data, arma::vec pVec, Rcpp::List MCMC_params) {
   return out;
 }
 
-
-//' Compute Log-likelihood Using Fast Fourier Transform
+//' Compute Log-likelihood Using KDE-based Fast Fourier Transform
 //'
 //' This function implements Holmes's (2015) KDE-FFT method to calculate
-//' approximate probability density.
+//' approximated probability density. The precision is set at 10 (ie 2^10).
+//' Please use \code{logLik_fft2}, if you want also the PDF, grid centers, and
+//' PDF_hist outputs.
 //'
-//' @param DT a vector of empirical decision times
-//' @param eDT a vector of modelled decision times
-//' @param m min value
-//' @param M max value
+//' @param y a vector storing empirical data (e.g., RTs)
+//' @param yhat a vector storing simulated data (e.g., simualted RTs, using a
+//' LBA model).
+//' @param m minimal value extracted from the empirical data vector
+//' @param M max value extracted from the empirical data vector
 //' @param h KDE bandwidth
-//' @param ns number of binned samples
+//' @param ns number of simulate data
 //' @return Log-likelihood
 //' @references Holmes, W. (2015). A practical guide to the Probability Density
 //' Approximation (PDA) with improved implementation and error characterization.
@@ -252,24 +164,37 @@ Rcpp::List getDTs(Rcpp::List data, arma::vec pVec, Rcpp::List MCMC_params) {
 //' doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
 //' @export
 //' @examples
-//' DT1  <- read.csv("data/DT1.csv", header=F)
-//' DT2  <- read.csv("data/DT2.csv", header=F)
-//' eDT1 <- read.csv("data/eDT1.csv", header=F)
-//' eDT2 <- read.csv("data/eDT2.csv", header=F)
+//' ## Use piecewise LBA data as an example
+//' data(lba)
 //' bandwidth <- .02;
 //' nsample <- 1e4
-//' m <- min(c(DT1$V1, DT2$V1)) - 3 * bandwidth
-//' M <- max(c(DT1$V1, DT2$V1)) + 3 * bandwidth
-//' logLik_fft(DT1$V1, eDT1$V1, m, M, bandwidth, nsample)
-//' logLik_fft(DT2$V1, eDT2$V1, m, M, bandwidth, nsample)
+//' m <- min(c(plba$DT1, plba$DT2)) - 3 * bandwidth
+//' M <- max(c(plba$DT1, plba$DT2)) + 3 * bandwidth
+//' logLik_fft(plba$DT1, plba$eDT1, m, M, bandwidth, nsample)
+//' logLik_fft(plba$DT2, plba$eDT2, m, M, bandwidth, nsample)
+//' tmp1 <- logLik_fft2(plba$DT1, plba$eDT1, m, M, bandwidth, nsample)
+//' tmp2 <- logLik_fft2(plba$DT2, plba$eDT2, m, M, bandwidth, nsample)
+//' str(tmp1)
+//'
+//' ## List of 4
+//' ## $ LL      : num 33.9
+//' ## $ PDF     : num [1:695, 1] 1.761 0.445 1.368 1.681 1.542 ...
+//' ## $ z       : num [1:1024, 1] 0.157 0.159 0.16 0.161 0.162 ...
+//' ## $ PDF_hist: num [1:1025, 1] 0 0 0 0 0 0 0 0 0 0 ...
+//' str(tmp2)
+//' ## List of 4
+//' ## $ LL      : num -323
+//' ## $ PDF     : num [1:305, 1] 0.5526 0.2489 0.5588 0.0579 0.3016 ...
+//' ## $ z       : num [1:1024, 1] 0.157 0.159 0.16 0.161 0.162 ...
+//' ## $ PDF_hist: num [1:1025, 1] 0 0 0 0 0 0 0 0 0 0 ...
 // [[Rcpp::export]]
-double logLik_fft(arma::vec DT, arma::vec eDT, double m, double M,
+double logLik_fft(arma::vec y, arma::vec yhat, double m, double M,
   double h, int ns) {
   arma::vec z = arma::linspace<arma::vec>(m, M, std::pow(2, 10)) ;
   arma::vec bin_edges = getEdges(z) ;
   arma::vec filter    = getFilter(m, M, h) ;  // Gauss filter
   double dt           = z[1] - z[0] ;
-  arma::uvec hc       = arma::histc(eDT, bin_edges) ;
+  arma::uvec hc       = arma::histc(yhat, bin_edges) ;
   arma::vec bincount  = arma::conv_to<arma::vec>::from(hc);
   arma::vec PDF_hist  = bincount / (dt * ns);
 
@@ -278,256 +203,108 @@ double logLik_fft(arma::vec DT, arma::vec eDT, double m, double M,
   arma::cx_vec PDF_fft_filt = filter % PDF_fft ;
   arma::vec PDF_smoothed = arma::real(arma::ifft(PDF_fft_filt)) ;
   arma::vec PDF;   // Interpolate the grid likelihood to the data
-  arma::interp1(z, PDF_smoothed, DT, PDF);
+  arma::interp1(z, PDF_smoothed, y, PDF);
   arma::vec PDF_tmp = pmax(PDF, std::pow(10, -5)) ;
   double LL = arma::accu(arma::log(PDF_tmp));
   return LL ;
 }
 
-//' Compute FFT Log-likelihood for Piece-wise LBA Model
-//'
-//' Use logLik_fft to get probability density for a piecewise LBA model.
-//'
-//' @param data subject data
-//' @param pVec a parameter vector for piece-wise LBA Model
-//' @param MCMC_params MCMC parameters
-//' @return Log-likelihood
-//' @export
-//' @examples
-//' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e4,
-//'                   Nstep=30, Nchain=24, noise_size=.001, burnin=10,
-//'                   resample_mod=3)
-//'
-//' load("data/Data1.rda")
-//' dplyr::tbl_dt(d)
-//'
-//' ## Source: local data table [1,000 x 3]
-//' ##      Response ResponseTime Block
-//' ##         (dbl)        (dbl) (dbl)
-//' ##   1         0    0.5676343     1
-//' ##   2         1    0.6183177     1
-//' ##   3         0    0.8806298     1
-//' ##   4         0    0.4563023     1
-//' ##   5         1    0.8496136     1
-//' ##   6         0    0.5866219     1
-//' ##   7         1    0.6482302     1
-//' ##   8         1    0.3510035     1
-//' ##   9         0    0.6117150     1
-//' ##   10        0    0.6940521     1
-//' ##   ..      ...          ...   ...
-//'
-//' pVec <- c(1.51, 3.32, 1.51, 2.24, 3.69, 0.31, 0.08)
-//' tmp0 <- Compute_log_likelihood_FFT(d, pVec, mcmcParams)
-//' tmp1 <- logLik_pLBA(d, pVec, mcmcParams)
-//'
-//' require(rbenchmark)
-//' within(benchmark(R=Compute_log_likelihood_FFT(d, pVec, mcmcParams),
-//'   Cpp=logLik_pLBA(d, pVec, mcmcParams),
-//'   replications=rep(1e2, 3),
-//'   columns=c('test', 'replications', 'elapsed'),
-//'   order=c('test', 'replications')),
-//'   { average = elapsed/replications })
-//' ##     test replications elapsed average
-//' ##  2  Cpp          100   0.736 0.00736
-//' ##  4  Cpp          100   0.737 0.00737
-//' ##  6  Cpp          100   0.736 0.00736
-//' ##  1    R          100   1.037 0.01037
-//' ##  3    R          100   0.922 0.00922
-//' ##  5    R          100   0.922 0.00922
-//'
+//' @rdname logLik_fft
 //' @export
 // [[Rcpp::export]]
-double logLik_pLBA(Rcpp::List data, arma::vec pVec, Rcpp::List MCMC_params)
-{
-  double h       = MCMC_params["bandwidth"] ;  // Extract the KDE parameters
-  int ns         = MCMC_params["LL_NSAMPLE"] ;
-  Rcpp::List DTs = getDTs(data, pVec, MCMC_params) ;
-  arma::vec DT1  = DTs["DT1"] ;  // C1time-t0: empirical response type 1
-  arma::vec DT2  = DTs["DT2"] ;  // C2time-t0: empirical response type 2
-  arma::vec eDT1 = DTs["eDT1"] ; // A1 LBA model estimates
-  arma::vec eDT2 = DTs["eDT2"] ; // A2
+Rcpp::List logLik_fft2(arma::vec y, arma::vec yhat, double m, double M,
+  double h, int ns) {
+    arma::vec z = arma::linspace<arma::vec>(m, M, std::pow(2, 10)) ;
+    arma::vec bin_edges = getEdges(z) ;
+    arma::vec filter    = getFilter(m, M, h) ;  // Gauss filter
+    double dt           = z[1] - z[0] ;
+    arma::uvec hc       = arma::histc(yhat, bin_edges) ;
+    arma::vec bincount  = arma::conv_to<arma::vec>::from(hc);
+    arma::vec PDF_hist  = bincount / (dt * ns);
 
-  // Extract the minimum and maximum switch times.
-  double m   = std::min(DT1.min(), DT2.min()) - 3*h ;
-  double M   = std::max(DT1.max(), DT2.max()) + 3*h ;
-  double LL1 = logLik_fft(DT1, eDT1, m, M, h, ns) ; // Do FFT Smoothing
-  double LL2 = logLik_fft(DT2, eDT2, m, M, h, ns) ;
-  return LL1 + LL2 ;
+    arma::vec tmp             = PDF_hist.rows(0, (PDF_hist.size() - 2)) ;
+    arma::cx_vec PDF_fft      = arma::fft(tmp) ;
+    arma::cx_vec PDF_fft_filt = filter % PDF_fft ;
+    arma::vec PDF_smoothed = arma::real(arma::ifft(PDF_fft_filt)) ;
+    arma::vec PDF;   // Interpolate the grid likelihood to the data
+    arma::interp1(z, PDF_smoothed, y, PDF);
+    arma::vec PDF_tmp = pmax(PDF, std::pow(10, -5)) ;
+    double LL = arma::accu(arma::log(PDF_tmp));
+
+    Rcpp::List out = Rcpp::List::create(
+        Rcpp::Named("LL")        = LL,
+        Rcpp::Named("PDF")       = PDF_tmp,
+        Rcpp::Named("z")         = z,
+        Rcpp::Named("PDF_hist")  = PDF_hist);
+    return out ;
 }
 
-
-//' Initialise a Piecewise LBA Sample
+//' Compute FFT Log-likelihood for a Gaussian Distribution
 //'
-//' Generate a Bayesian initial sample
+//' This is a wrapper function to approximate a Gaussian distribution, using
+//' KDE-FFT method. To retrieve more outputs and replicate Holmes's example 1,
+//' please use \code{logLik_norm2}.
 //'
-//' @param data the choice-RT data from subjects to be fit.
-//' @param MCMC_params Provides all MCMC and KDE parameters along with a
-//' few other things
-//' @param Model_specifics Stores function handles and block information
-//' for the model
-//' @param gammaMult default 2.38
-//' @param report the iteration interval of returning a progress report.
-//' @return the chain parameter information (param_chain). This ends up
-//' saved in a data file however. The matrix has a structure
-//' \code{param_chain(MCMC_iteration,parameter num,chain num)}
-//' Default 100
-//' @keywords demc
+//' @param object a vector storing empirical data
+//' @param pVec parameter vector storing mean and standard deviation
+//' @param setting MCMC and DE-MC parameters
+//' @return Log-likelihood; plus PDF, grid centers, and PDF_hist
+//' @export
 //' @examples
-//' load("data/Data1.rda")
-//' dplyr::tbl_dt(d)
-//' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e4,
-//' Nstep=30, Nchain=24, noise_size=.001, burnin=10, resample_mod=3,
-//' start=1)
-//' ## Group parameters into MCMC blocks; should follow the order
-//' mod <- list(block_1_ind=c(1,2,4,7),  ## A, muv1, muv2, t_er
-//'              block_2_ind=c(3,5,6))    ## muw1, muw2, t_delay
-//' tmp0 <- init(data=d, MCMC_params = mcmcParams, Model_specifics = mod)
+//' pVec <- c(mu=5, sigma=1)
+//' y    <- sort(rnorm(1000, pVec[1], pVec[2]))
+//' iqr  <- IQR(y, type=1)
+//' S    <- sd(y)
+//'
+//' setting <- c(sigma_exact=1, bandwidth=.9*min(iqr,S)*1e4^(-.2), ns=1e4,
+//'              nmc=30, nchain=24, rp=.001, burnin=10, nthin=3, start=1,
+//'              gammaMult=2.38, ST=0, report=100)
+//'
+//' ll <- logLik_norm2(y, pVec, setting)
+//' str(ll)
+//' ## List of 4
+//' ## $ LL      : num -1370
+//' ## $ PDF     : num [1:1000, 1] 0.006 0.00617 0.00813 0.02605 0.03 ...
+//' ## $ z       : num [1:1024, 1] 1.65 1.66 1.66 1.67 1.68 ...
+//' ## $ PDF_hist: num [1:1025, 1] 0 0 0 0 0 0 0 0 0 0 ...
+//'
+//' end1 <- length(ll$PDF_hist)-1
+//' plot(ll$z, ll$PDF_hist[1:end1], type="l", lty=2,
+//' main="Normal Distribution",xlab="x",ylab="L(x|beta)")
+//' lines(y, ll$PDF, col="red", lwd = 1.5)
+//'
+//' ##########################################################################
+//'
+//' logLik_norm(y, pVec, setting)
+//' ## [1] -1372.969
+// [[Rcpp::export]]
+double logLik_norm(arma::vec object, arma::vec pVec, arma::vec setting) {
+    // pVec[0] is mean, pVec[1] is sigma
+    arma::vec y    = arma::sort(object) ;
+    int ns         = setting[2] ;
+    double h       = setting[1];
+    arma::vec yhat = pVec[0]+pVec[1] * arma::randn(ns) ; // simulation
+    double m  = y.min() - 3*h; // min for empirical data
+    double M  = y.max() + 3*h; // max ...
+    double LL = logLik_fft(y, yhat, m, M, h, ns) ;
+    return LL ;
+}
+
+//' @rdname logLik_norm
 //' @export
 // [[Rcpp::export]]
-arma::mat init(Rcpp::List data, Rcpp::List MCMC_params,
-  Rcpp::List Model_specifics, double gammaMult=2.38)
-{
-  // d-dimension for piece1 (block2) and piece2 (block2)
-  arma::vec pars1 = Model_specifics["block_1_ind"];
-  arma::vec pars2 = Model_specifics["block_2_ind"];
-
-  double gamma1 = std::isnan(gammaMult) ? Rf_runif(0.5, 1.0) :
-    gammaMult/sqrt(2*pars1.size()) ;
-  double gamma2 = std::isnan(gammaMult) ? Rf_runif(0.5, 1.0) :
-    gammaMult/sqrt(2*pars2.size()) ;
-
-  // Extract MCMC parameters
-  int nmc    = MCMC_params["Nstep"] ;  // Extract the KDE parameters
-  int nchain = MCMC_params["Nchain"] ;
-  double rp  = MCMC_params["noise_size"] ;
-  int burnin = MCMC_params["burnin"] ;
-  //int thin   = MCMC_params["resample_mod"] ;
-
-  // Initialize data structures and stagnation counter
-  int npar = pars1.size() + pars2.size() ;
-  Rcpp::List init = initializeStructures(nmc, npar, nchain) ;
-
-  arma::mat prior_new(npar, nchain) ;
-  arma::mat prior_old(npar, nchain) ;
-  arma::mat log_lik_old(1, nchain) ;
-  arma::mat log_lik_new(1, nchain) ;
-
-  prior_new.fill(NA_REAL) ;
-  prior_old.fill(NA_REAL) ;
-  log_lik_new.fill(NA_REAL) ;
-  log_lik_old.fill(NA_REAL) ;
-
-  arma::mat tmp0      = init["direction"] ;
-  arma::mat proposal  = init["proposal"] ;
-  arma::mat param_old = init["param_old"] ;
-  arma::mat LL_keep   = init["LL_keep"] ;
-  arma::vec direction = tmp0.col(0) ;
-  arma::vec epsilon   = proposal.col(0) ;
-
-  // Initialize LL and prior for the first parameter set.
-  for(int i=0; i<nchain; i++)
-  {
-    arma::vec tmp1   = param_old.col(i) ;
-    double LL_tmp    = logLik_pLBA(data, tmp1, MCMC_params) ;
-    log_lik_old(0,i) = LL_tmp ;
-    prior_old(0,i)   = SwitchModelPrior(tmp1) ;
-  }
-
-  LL_keep.row(0) =- log_lik_old ;
-
-  return LL_keep;
+Rcpp::List logLik_norm2(arma::vec object, arma::vec pVec, arma::vec setting) {
+    arma::vec y    = arma::sort(object) ;
+    int ns         = setting[2] ;
+    double h       = setting[1];
+    arma::vec yhat = pVec[0]+pVec[1] * arma::randn(ns) ; // simulation
+    double m  = y.min() - 3*h; // min for empirical data
+    double M  = y.max() + 3*h; // max ...
+    Rcpp::List LL = logLik_fft2(y, yhat, m, M, h, ns) ;
+    Rcpp::List out = Rcpp::List::create(
+      Rcpp::Named("LL")        = LL["LL"],
+      Rcpp::Named("PDF")       = LL["PDF"],
+      Rcpp::Named("z")         = LL["z"], // grid centers
+      Rcpp::Named("PDF_hist")  = LL["PDF_hist"]) ;
+    return out ;
 }
-
-//' Pick Two Other Chains Randomly
-//'
-//' This is part of the algorithm of DE-MC. The function picks two other
-//' chains, except the currently processed one.
-//'
-//' @param k an integer indicating which chain is currently running. This has
-//' to be an integer and with the range of 0 to nchain-1. There is no check to
-//' preventing the function from crashing, if the user enter an irregular
-//' number.
-//' @param chains an integer vector (std::vector) from 0 to nchain-1.
-//' @return an Armadillo vector
-//' @keywords pick_2chains
-//' @examples
-//' nchain <- 24
-//' chainSeq <- (1:24)-1
-//' pick_2chains(3, chainSeq)
-//' @export
-// [[Rcpp::export]]
-arma::vec pick_2chains(int k, std::vector<int> chains) {
-  chains.erase(chains.begin()+k) ;
-  arma::vec chains0  = arma::conv_to<arma::vec>::from(chains);
-  arma::vec shuffledChains = arma::shuffle(chains0) ;
-  arma::vec pickedChains(2) ;
-  pickedChains[0] = shuffledChains[0] ; // Ignore R index, use C index directly
-  pickedChains[1] = shuffledChains[1] ;
-  return pickedChains ;
-}
-
-//' Use DEMC Sampler to Fit a Hierarchical Bayesian Model
-//'
-//' Run DEMC-EAM Fit
-//'
-//' @param MCMC_params Provides all MCMC and KDE parameters along with a
-//' few other things
-//' @param Model_specifics Stores function handles and block information
-//' for the model
-//' @return 0
-//' @keywords demc
-//' @examples
-//' load("data/Data1.rda")
-//' dplyr::tbl_dt(d)
-//' mcmcParams <- list(sigma_exact=1, bandwidth=.02, LL_NSAMPLE=1e4,
-//' Nstep=30, Nchain=24, noise_size=.001, burnin=10, resample_mod=3,
-//' start=1)
-//' ## Group parameters into MCMC blocks; should follow the order
-//' mod <- list(block_1_ind=c(1,2,4,7),  ## A, muv1, muv2, t_er
-//'              block_2_ind=c(3,5,6))    ## muw1, muw2, t_delay
-//' tmp0 <- run(MCMC_params=mcmcParams, Model_specifics=mod)
-//' @export
-// [[Rcpp::export]]
-arma::vec run(Rcpp::List MCMC_params, Rcpp::List Model_specifics, int report=100) {
-  int nmc     = MCMC_params["Nstep"] ;  // Extract the KDE parameters
-  int nchain  = MCMC_params["Nchain"] ;
-  int nthin   = MCMC_params["resample_mod"] ;
-  int start_R = MCMC_params["start"] ;
-  int start_C = start_R - 1 ;
-  int store_i = start_C ;
-
-  arma::vec pars1 = Model_specifics["block_1_ind"];
-  arma::vec pars2 = Model_specifics["block_2_ind"];
-  int npar = pars1.size() + pars2.size() ;
-
-  // Initialize the acceptance counter rate counters.
-  int acceptance = 0, accept1 = 0, accept2 = 0;
-  arma::cube theta(nmc, npar, nchain) ;   // nChains x npars x nmc
-  int nsamp = 1 + (nmc - start_R) * nthin ;
-  std::vector<int> chains (nchain);
-  std::generate (chains.begin(), chains.end(), UniqueNumber);
-  arma::vec pickedChains ;
-
-  // Start from 2nd nsamp, so i=1, instead of 0 (This is C index)
-  for(int i=1; i<nsamp; i++)
-  {
-    // run chains
-    for(int j=0; j<nchain; j++)
-    {
-      // Parameter block 1;  Generate proposal;
-      pickedChains = pick_2chains(j, chains) ;
-    }
-
-    if (i % nthin == 0)
-    {
-      store_i++ ;
-      if ((store_i+1) % report == 0) { Rcpp::Rcout << store_i+1 << " "; }
-    }
-  }
-  return pickedChains;
-}
-
-
-
-
-
