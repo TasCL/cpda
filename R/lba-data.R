@@ -1,7 +1,7 @@
 #' Probability Density Approximation Data Sets
 #'
-#' An example data set to fit piecewise LBA model, converged from Holmes's
-#' MATLAB formmated Example 4 Files (Data1.mat).
+#' An example data set to fit piecewise LBA model, converted from Holmes's 
+#' (2015) MATLAB formatted Example 4 Files (Data1.mat).
 #'
 #' @docType data
 #' @keywords dataset
@@ -21,8 +21,8 @@ NULL
 
 #' Probability Density Approximation Data Sets
 #'
-#' An example data set to fit piecewise LBA model, converged from Holmes's
-#' MATLAB formmated Example 4 Files (Data1.mat).
+#' An example data set to fit piecewise LBA model, converted from Holmes's
+#' MATLAB formatted Example 4 Files (Data1.mat).
 #'
 #' @docType data
 #' @keywords dataset

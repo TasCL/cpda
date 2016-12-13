@@ -2,46 +2,50 @@
 % Please edit documentation in R/RcppExports.R
 \name{rplba}
 \alias{rplba}
-\title{Retrieve Empirical and Modelled Decision Times}
+\title{Generate Random Choice Decision Times}
 \usage{
-rplba(data, pVec, setting)
+rplba(n, pVec)
 }
 \arguments{
-\item{data}{a Rcpp List for subject data}
+\item{n}{number of observations. Must be an integer}
 
-\item{pVec}{a Rcpp NumvericVector for parameter vector}
-
-\item{setting}{a named numeric vector storing DE and MCMC parameters:
-sigma_exact, bandwidth, ns (nsample), nmc, nchain, rp (DE noise,
-usually .001), burnin, nthin, start (usually 1), gammaMult (DE gamma,
-usually 2.38), ST (piecewise LBA switch time, depending on experimental
-design), and report}
+\item{pVec}{a double vector storing pLBA model parameters. The sequence is 
+critical. It is, A, b, muv1, muv2, t_ND, muw1, muw2, t_delay, sv, swt.}
 }
 \value{
-A four-element list with estimated decision time for accumulator 1,
+A two-element list with estimated decision time for accumulator 1,
 accumultor 2, empirical decision time for accumualtor 1 and accumulator 2.
 }
 \description{
-Get decision times for two-accumulator LBA model
+Uses two-accumulator pLBA model to generate random choice DTs (not RTs!).
+}
+\details{
+\itemize{
+\item \bold{\emph{A}} starting point interval. A starting point is with the 
+interval \code{[0, A]}. Average amount of prior evidence (ie before accumulation 
+process even begins) across trials is \code{A/2}. 
+\item \bold{\emph{b}} response threshold. \code{b-A/2} is a measure of 
+\emph{response caution}.
+\item \bold{\emph{muv1}} accumulator 1 drift rate, piece 1
+\item \bold{\emph{muv2}} accumulator 2 drift rate, piece 1
+\item \bold{\emph{t_ND}} non-decision time in second. 
+\item \bold{\emph{muw1}} accumulator 1 drift rate, piece 2
+\item \bold{\emph{muw2}} accumulator 2 drift rate, piece 2
+\item \bold{\emph{t_delay}} delay time for the two-piece process   
+\item \bold{\emph{sv}} a common standard deviation for all drift rates 
+(muv1, muw1, muv2, muw2).
+\item \bold{\emph{swt}} switch time, usually determined by experimental 
+design).
+}
 }
 \examples{
-data(lba)
-dMat <- data.matrix(d)
+pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51, 
+          muw2=3.69, t_delay=0.31, sv=1, swt=0.5)
+## setting <- c(bandwidth=.02, ns=1e5, nmc=30, nchain=24, rp=.001, burnin=10,
+## nthin=3, start=1, gammaMult=2.38, report=100)
+DTs <- cpda::rplba(n=1e4, pVec)
+summary(DTs)
+head(DTs)
 
-##  A       muv1    muw1    muv2    muw2    t_delay t_ND    b
-p.vector <- c(A=1.51, muv1=3.32, muw1=1.51, muv2=2.24, muw2=3.69,
-              t_delay=0.31, t_ND=0.08, b=2.7)
-setting <- c(sigma_exact=1, bandwidth=.02, ns=1e2, nmc=30, nchain=24,
-             rp=.001, burnin=10, nthin=3, start=1, gammaMult=2.38,
-             ST=attr(d, "SwitchTime"), report=100)
-
-DTs <- pda::rplba(dMat, p.vector, setting)
-str(DTs)
-
-## List of 4
-## $ eDT1: num [1:72, 1] 0.317 0.425 0.71 0.345 0.526 ...
-## $ eDT2: num [1:28, 1] 0.45 0.418 0.56 0.719 0.313 ...
-## $ DT1 : num [1:695, 1] 0.488 0.801 0.376 0.507 0.532 ...
-## $ DT2 : num [1:305, 1] 0.538 0.77 0.568 0.271 0.881 ...
 }
 

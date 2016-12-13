@@ -8,8 +8,8 @@
 \href{http://dx.doi.org/10.1016/j.jmp.2015.08.006}{PDA paper}
 }
 \description{
-An example data set to fit piecewise LBA model, converged from Holmes's
-MATLAB formmated Example 4 Files (Data1.mat).
+An example data set to fit piecewise LBA model, converted from Holmes's
+MATLAB formatted Example 4 Files (Data1.mat).
 }
 \examples{
 data(lba)

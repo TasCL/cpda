@@ -1,8 +1,0 @@
-#include <RcppArmadillo.h>
-
-inline arma::vec getEdges(arma::vec z) ;
-arma::vec getFilter(double m, double M, double bandwidth) ;
-arma::vec pmax(arma::vec v, double min) ;
-double logLik_fft(arma::vec data, arma::vec estimate, double m, double M, double h, int ns) ;
-arma::vec logLik_norm(arma::vec object, arma::vec pVec, arma::vec setting) ;
-

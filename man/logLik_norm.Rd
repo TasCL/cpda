@@ -5,16 +5,16 @@
 \alias{logLik_norm2}
 \title{Compute FFT Log-likelihood for a Gaussian Distribution}
 \usage{
-logLik_norm(object, pVec, setting)
+logLik_norm(object, pVec, ns)
 
-logLik_norm2(object, pVec, setting)
+logLik_norm2(object, pVec, ns)
 }
 \arguments{
 \item{object}{a vector storing empirical data}
 
 \item{pVec}{parameter vector storing mean and standard deviation}
 
-\item{setting}{MCMC and DE-MC parameters}
+\item{ns}{number of simulations.}
 }
 \value{
 Log-likelihood; plus PDF, grid centers, and PDF_hist
@@ -26,30 +26,15 @@ please use \code{logLik_norm2}.
 }
 \examples{
 pVec <- c(mu=5, sigma=1)
-y    <- sort(rnorm(1000, pVec[1], pVec[2]))
-iqr  <- IQR(y, type=1)
-S    <- sd(y)
+y    <- sort(rnorm(1e5, pVec[1], pVec[2]))
 
-setting <- c(sigma_exact=1, bandwidth=.9*min(iqr,S)*1e4^(-.2), ns=1e4,
-             nmc=30, nchain=24, rp=.001, burnin=10, nthin=3, start=1,
-             gammaMult=2.38, ST=0, report=100)
+ll1 <- logLik_norm(y, pVec, 1e5)
+ll2 <- logLik_norm2(y, pVec, 1e5)
+str(ll1); str(ll2)
 
-ll <- logLik_norm2(y, pVec, setting)
-str(ll)
-## List of 4
-## $ LL      : num -1370
-## $ PDF     : num [1:1000, 1] 0.006 0.00617 0.00813 0.02605 0.03 ...
-## $ z       : num [1:1024, 1] 1.65 1.66 1.66 1.67 1.68 ...
-## $ PDF_hist: num [1:1025, 1] 0 0 0 0 0 0 0 0 0 0 ...
-
-end1 <- length(ll$PDF_hist)-1
-plot(ll$z, ll$PDF_hist[1:end1], type="l", lty=2,
+plot(ll2$z, ll2$PDF_hist, type="l", lty=2,
 main="Normal Distribution",xlab="x",ylab="L(x|beta)")
-lines(y, ll$PDF, col="red", lwd = 1.5)
+lines(y, ll2$PDF, col="red", lwd = 1.5)
 
-##########################################################################
-
-logLik_norm(y, pVec, setting)
-## [1] -1372.969
 }
 
