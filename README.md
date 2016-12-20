@@ -1,6 +1,6 @@
 # Probability Density Approximation
 
-This implements probability density approximation, using Armadillo C++ and 
+This package implements probability density approximation, using Armadillo C++ and 
 Open MP libraries.
 
 ## Getting Started
