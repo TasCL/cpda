@@ -12,6 +12,10 @@ cquantile(y, q)
 \item{q}{nth quantile. Enter proportion, such as .25 or .75.}
 }
 \description{
-A C++ version quantile function.
+A C++ quantile function.
+}
+\examples{
+y <- rnorm(100)
+q <- cquantile(y, .25) 
 }
 

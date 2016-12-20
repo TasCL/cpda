@@ -2,54 +2,52 @@
 % Please edit documentation in R/RcppExports.R
 \name{logLik_fft}
 \alias{logLik_fft}
-\alias{logLik_fft2}
-\title{Compute Log-likelihood Using KDE-based Fast Fourier Transform}
+\title{Compute Summed Log-Likelihood Using KDE-FFT}
 \usage{
-logLik_fft(y, yhat)
-
-logLik_fft2(y, yhat)
+logLik_fft(y, yhat, h = 0, m = 0.8, p = 10)
 }
 \arguments{
-\item{y}{a vector storing empirical data (e.g., RTs)}
+\item{y}{a scalar or vector storing empirical data.}
 
-\item{yhat}{a vector storing simulated data (e.g., simualted RTs, using a
-LBA model).}
+\item{yhat}{a scalar or vector storing simulated data (e.g., 
+\code{rnorm(100)}).}
+
+\item{h}{the bandwidth of kernel density estimation. If not given, 
+\code{logLik_fft} will detect the default, \code{h==0} and accordingly 
+convert it to Sliverman's rule of thumb; otherwise the function uses 
+bandwidth entered by the user;}
+
+\item{m}{a multiplier to adjust \code{h} proportationally. Default is 0.8. 
+If one wish not adjust bandwidth, s/he has to enter \code{m=1}.}
+
+\item{p}{a precision parameter defines the number of grid as power of 2.
+Default value is 10 (i.e., ngrid==2^10).}
 }
 \value{
-Log-likelihood
+Summed log-likelihood
 }
 \description{
-This function implements Holmes's (2015) KDE-FFT method to calculate
-approximated probability density. The precision is set at 10 (ie 2^10).
-\code{logLik_fft2} returns three additional vectors, PDF (discrete
-probability densities for interpolated empirical data), grid centers, and
-PDF_hist (discrete probability densities for the simulated data).
+This function uses KDE-FFT method to approximate probability density. 
+\code{logLik_fft} returns only one scalar value, which is summed, logged 
+likelihood. Use \code{logLik_fft2} to retrieve three additional elements: 
+\emph{PDF}, \emph{z} and \emph{PDF_hist}. See \code{\link{logLik_fft2}} for 
+further details.
 }
 \examples{
+## See logLik_fft2 for more examples
 ## Use piecewise LBA data as an example
 data(lba)
 logLik_fft(plba$DT1, plba$eDT1)
 logLik_fft(plba$DT2, plba$eDT2)
-tmp1 <- logLik_fft2(plba$DT1, plba$eDT1)
-tmp2 <- logLik_fft2(plba$DT2, plba$eDT2)
-
-str(tmp1)
-## List of 4
-## $ LL      : num 278
-## $ PDF     : num [1:695, 1] 2.441 0.632 1.966 2.359 2.214 ...
-## $ z       : num [1:1024, 1] 0.0889 0.0903 0.0916 0.093 0.0943 ...
-## $ PDF_hist: num [1:1024, 1] 0 0 0 0 0 0 0 0 0 0 ...
-str(tmp2)
-## List of 4
-## $ LL      : num 42.9
-## $ PDF     : num [1:305, 1] 1.879 0.965 1.834 0.326 0.921 ...
-## $ z       : num [1:1024, 1] 0.067 0.0696 0.0722 0.0748 0.0774 ...
-## $ PDF_hist: num [1:1024, 1] 0 0 0 0 0 0 0 0 0 0 ...
 }
 \references{
 Holmes, W. (2015). A practical guide to the Probability Density
 Approximation (PDA) with improved implementation and error characterization.
 \emph{Journal of Mathematical Psychology}, \bold{68-69}, 13--24,
 doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
+}
+\seealso{
+\code{\link{bw.nrd}}, \code{\link{logLik_fft2}}, 
+\code{\link{bandwidth.nrd}}.
 }
 

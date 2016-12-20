@@ -2,9 +2,12 @@
 % Please edit documentation in R/RcppExports.R
 \name{logLik_plba}
 \alias{logLik_plba}
-\title{Compute FFT Log-likelihood for a pLBA Model}
+\alias{logLik_plba2}
+\title{Compute Summed Log-likelihood for a pLBA Model}
 \usage{
-logLik_plba(object, pVec, ns)
+logLik_plba(object, pVec, ns, h = 0, m = 0.8, p = 10)
+
+logLik_plba2(object, pVec, ns, h = 0, m = 0.8, p = 10)
 }
 \arguments{
 \item{object}{a matrix storing empirical choice RT data. First column must
@@ -15,26 +18,82 @@ critical. It is, A, b, muv1, muv2, t_ND, muw1, muw2, t_delay, sv, swt.}
 
 \item{ns}{number of simulations. Usually \code{cpda} can handle up to 1e6. 
 Use \code{gpda} if large simulation is required.}
+
+\item{h}{KDE bandwidth. If not input been enter, the default is 
+Sliverman's rule of thumb; otherwise the function uses the input from
+the user;}
+
+\item{m}{a multiplier to adjust proportationally h. Default is 0.8}
+
+\item{p}{a precision parameter defines the number of grid as power of 2.
+Default value is 10 (i.e., 2^10).}
 }
 \value{
-a summed, logged likelihood across trials and accumulators.
+a summed, logged likelihood across trials and accumulators. 
+\code{logLik_plba2} returns three more elements.
 }
 \description{
 This is a wrapper function to approximate a pLBA distribution, using
-KDE-FFT method. To retrieve more outputs, please use \code{logLik_pLBA2}.
+KDE-FFT method. To retrieve more outputs, use \code{logLik_plba2}.
+}
+\details{
+\code{logLik_plba2} is identical to \code{logLik_plba}, except returning 
+four elements:
+
+\itemize{
+\item \bold{\emph{LL}}, summed, logged likelihood. This is the same as the 
+return value from \code{logLik_plba}. 
+\item \bold{\emph{PDF}}, a numeric vector storing \emph{logged}  
+probability densities for individual data point.
+\item \bold{\emph{z}}, a numeric vector storing centre points of the 
+simulated histogram (i.e., grid centre)
+\item \bold{\emph{PDF_hist}} a numeric vector stoing the count of simulated
+data point in each bin 
+}
 }
 \examples{
  
+###################
+## Example 1     ##
+###################
+## I demonstrate how to use the build-in logLik_plba to calculate
+## pLBA densities. set.seed(123) is to produce the same result.
 rm(list=ls())
+pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51, 
+          muw2=3.69, t_delay=0.31, sv=1, swt=0.5)
+          
 data(lba)
-dMat <- data.matrix(d)
-head(dMat)
+dMat <- data.matrix(d); head(dMat)
 
-pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51, muw2=3.69,
-          t_delay=0.31, sv=1, swt=0.5)
-## setting <- c(bandwidth=.02, ns=1e5, nmc=30, nchain=24, rp=.001, burnin=10,
-## nthin=3, start=1, gammaMult=2.38, report=100)
-tmp0 <- cpda::logLik_plba(dMat, pVec, 1e5); tmp0
- 
+set.seed(123)
+samp   <- cpda::rplba(1e5, pVec); head(samp)
+h   <- 0.8*bw.nrd0(samp[,2]); h
+set.seed(123)
+ll0 <- cpda::logLik_plba(dMat, pVec, 1e5, h=h, m=1); ll0
+## [1] -7254.58
+set.seed(123)
+llList <- cpda::logLik_plba2(dMat, pVec, 1e5, h=h, m=1); 
+str(llList)
+
+## List of 4
+## $ LL      : num -7255
+## $ PDF     : num [1:1000, 1] -23 -23 -23 -23 -23 ...
+## $ z       : num [1:2048, 1] 0.175 0.179 0.184 0.188 0.192 ...
+## $ PDF_hist: num [1:2048, 1] 0 0 0 0 0 0 0 0 0 0 ...
+
+## Here I demonstrate use rplba and logLik_fft to produce identical 
+## result
+set.seed(123)
+samp   <- cpda::rplba(1e5, pVec); head(samp)
+DTMat  <- cpda::choiceDT(dMat, pVec)
+time1  <- sort(DTMat[DTMat[,1] == 1, 2])
+time2  <- sort(DTMat[DTMat[,1] == 2, 2])
+time1_ <- sort(samp[samp[,1] == 1, 2])
+time2_ <- sort(samp[samp[,1] == 2, 2])
+ll1 <- cpda::logLik_fft(time1, time1_, h=h, m=1); ll1 ## [1] -5492.192
+ll2 <- cpda::logLik_fft(time2, time2_, h=h, m=1); ll2 ## [1] -1762.388
+print(ll1+ll2)
+## [1] -7254.58
+         
 }
 

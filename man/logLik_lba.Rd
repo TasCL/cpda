@@ -2,37 +2,89 @@
 % Please edit documentation in R/RcppExports.R
 \name{logLik_lba}
 \alias{logLik_lba}
-\title{Compute FFT Log-likelihood for a LBA Model}
+\alias{logLik_lba2}
+\title{Compute Summed Log-likelihood for a LBA Model}
 \usage{
-logLik_lba(object, pVec, ns)
+logLik_lba(object, pVec, ns, h = 0, m = 0.8, p = 10)
+
+logLik_lba2(object, pVec, ns, h = 0, m = 0.8, p = 10)
 }
 \arguments{
 \item{object}{a matrix storing empirical choice RT data. First column must
-stores choices and second column stores RTs in seconds.}
+be choices (1 & 2) and second column must bve RTs in seconds.}
 
-\item{pVec}{pLBA parameter vector. The sequence is 
-critical. It is, b1, b2, A1, A2, mu1, mu2, sigma1, sigma2, t01, and t02.}
+\item{pVec}{LBA parameter vector. The sequence is critical. It is b1, b2, 
+A1, A2, mu1, mu2, sigma1, sigma2, t01, and t02. 1 and 2 stand for 
+accumulator 1 and 2, respectively.}
 
-\item{ns}{number of simulations. Usually \code{cpda} can handle up to 1e6. 
-Use \code{gpda} if large simulation is required.}
+\item{ns}{number of simulations.}
+
+\item{h}{KDE bandwidth. If not given, the default \code{h} is 
+Sliverman's rule of thumb; otherwise the function uses the input from
+the user;}
+
+\item{m}{a multiplier to adjust proportationally h. Default is 0.8}
+
+\item{p}{a precision parameter defines the number of grid as power of 2.
+Default value is 10 (i.e., 2^10).}
 }
 \value{
-a summed, logged likelihood across trials and accumulators.
+a summed, logged likelihood across trials and accumulators. 
+\code{logLik_plba2} returns three more elements.
 }
 \description{
-This is a wrapper function to approximate a LBA distribution, using
-KDE-FFT method. To retrieve more outputs, please use \code{logLik_LBA2}.
+This is a wrapper function to approximate the densities of a LBA model, 
+using \code{logLik_fft}. To retrieve more outputs, use \code{logLik_lba2}.
+}
+\details{
+\code{logLik_lba2} is identical to \code{logLik_lba}, except the former 
+returns three more elements: 
+ 
+\itemize{
+\item \bold{\emph{LL}}, summed, logged likelihood. This is the same as the 
+return value from \code{logLik_lba}. 
+\item \bold{\emph{PDF}}, a numeric vector storing logged probability 
+densities for individual data point.
+\item \bold{\emph{z}}, a numeric vector storing centre points of the 
+simulated histogram (i.e., grid centre)
+\item \bold{\emph{PDF_hist}} a numeric vector stoing the count of simulated
+data point in each bin 
+}
 }
 \examples{
  
-rm(list=ls())
-data(lba)
-dMat <- data.matrix(d)
+## Demo identical outputs from manually building rlba and logLik_fft, 
+## comparing to logLik_lba 
+
+## First retrieve example data set
+data(lba)  
+d$R <- ifelse(d$Response==0, 1, 2)  ## convert 0 & 1 accumulator to 1 & 2
+dMat <- data.matrix(data.frame(R=d$R, RT=d$ResponseTime))
 head(dMat)
  
+## LBA parameter vector. The sequence is critical. 
 pVec <- c(b1=1, b2=1, A1=.5, A2=.5, mu1=2.4, mu2=1.6, sigma1=1, sigma2=1.2,
-t01=.5, t02=.5)
-tmp0 <- cpda::logLik_lba(dMat, pVec, 1e5); tmp0
+          t01=.5, t02=.5)
+           
+set.seed(123)  ## make sure using identical simulations
+samp <- cpda::rlba(1e5, pVec); head(samp)
+h    <- 0.8*bw.nrd0(samp[,2]); h
+
+## logLik_lba simulates internally, so set.seed ahead to make sure using
+## identical simulations
+set.seed(123)  
+tmp0 <- cpda::logLik_lba(dMat, pVec, 1e5, h, 1); tmp0 ## -3496.88
+
+## Manually calculate empirical DTs for accumulator 1 and accumualtor 2
+dt1  <- sort(dMat[dMat[,1] == 1, 2]) - pVec[9]
+dt2  <- sort(dMat[dMat[,1] == 2, 2]) - pVec[10]
+dt1_ <- sort(samp[samp[,1] == 1, 2]) - pVec[9]
+dt2_ <- sort(samp[samp[,1] == 2, 2]) - pVec[10]
+    
+## Calculating log-likelihoods separately for each accumulator
+ll1 <- cpda::logLik_fft(dt1, dt1_, h, 1); ll1
+ll2 <- cpda::logLik_fft(dt2, dt2_, h, 1); ll2
+print(ll1+ll2) ## -3496.88
  
 }
 

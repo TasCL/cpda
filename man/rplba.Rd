@@ -2,9 +2,12 @@
 % Please edit documentation in R/RcppExports.R
 \name{rplba}
 \alias{rplba}
-\title{Generate Random Choice Decision Times}
+\alias{rplba_omp}
+\title{Generate Random Choice Decision Times using pLBA Model}
 \usage{
 rplba(n, pVec)
+
+rplba_omp(n, pVec)
 }
 \arguments{
 \item{n}{number of observations. Must be an integer}
@@ -13,39 +16,112 @@ rplba(n, pVec)
 critical. It is, A, b, muv1, muv2, t_ND, muw1, muw2, t_delay, sv, swt.}
 }
 \value{
-A two-element list with estimated decision time for accumulator 1,
-accumultor 2, empirical decision time for accumualtor 1 and accumulator 2.
+A n x 2 matrix with a first column storing choices and second 
+column storing DTs.
 }
 \description{
-Uses two-accumulator pLBA model to generate random choice DTs (not RTs!).
+This function use two-accumulator piecewise LBA model to generate random 
+choice DTs (not RTs!). A parallel version \code{rplba_omp} enables parallel 
+random-number generation (used when n > 1e6).
 }
 \details{
 \itemize{
-\item \bold{\emph{A}} starting point interval. A starting point is with the 
-interval \code{[0, A]}. Average amount of prior evidence (ie before accumulation 
-process even begins) across trials is \code{A/2}. 
+\item \bold{\emph{A}} start point interval. \code{A} is the upper bound 
+of the interval \code{[0, A]}. An uniform distribution with bound, 
+\code{[0, A]} is used to generated a start point. Average amount of prior 
+evidence (ie before accumulation process even begins) across trials is 
+\code{A/2}. 
 \item \bold{\emph{b}} response threshold. \code{b-A/2} is a measure of 
-\emph{response caution}.
-\item \bold{\emph{muv1}} accumulator 1 drift rate, piece 1
-\item \bold{\emph{muv2}} accumulator 2 drift rate, piece 1
+average \emph{response caution}.
+\item \bold{\emph{muv1}} accumulator 1 drift rate, stage 1
+\item \bold{\emph{muv2}} accumulator 2 drift rate, stage 1
 \item \bold{\emph{t_ND}} non-decision time in second. 
-\item \bold{\emph{muw1}} accumulator 1 drift rate, piece 2
-\item \bold{\emph{muw2}} accumulator 2 drift rate, piece 2
-\item \bold{\emph{t_delay}} delay time for the two-piece process   
+\item \bold{\emph{muw1}} accumulator 1 drift rate, stage 2
+\item \bold{\emph{muw2}} accumulator 2 drift rate, stage 2
+\item \bold{\emph{t_delay}} delay time for the two-stage process   
 \item \bold{\emph{sv}} a common standard deviation for all drift rates 
 (muv1, muw1, muv2, muw2).
 \item \bold{\emph{swt}} switch time, usually determined by experimental 
-design).
+design.
 }
 }
 \examples{
+## pVec stands for parameter vector
 pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51, 
           muw2=3.69, t_delay=0.31, sv=1, swt=0.5)
-## setting <- c(bandwidth=.02, ns=1e5, nmc=30, nchain=24, rp=.001, burnin=10,
-## nthin=3, start=1, gammaMult=2.38, report=100)
-DTs <- cpda::rplba(n=1e4, pVec)
-summary(DTs)
-head(DTs)
+n <- 10
 
+## A R-rplba function
+\dontrun{ 
+rplba <- function(n, p=c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, 
+                        muw1=1.51, muw2=3.69, t_delay=0.31, sv=1, swt=0.5)) 
+{
+require(msm)
+## Stage 1 LBA
+v1 <- msm::rtnorm(n,p["muv1"],p["sv"],0); 
+v2 <- msm::rtnorm(n,p["muv2"],p["sv"],0); 
+sp <- matrix(runif(2*n,0,p["A"]),nrow=2)
+    
+## Race
+dt <- rbind((p["b"]-sp[1,])/v1,(p["b"]-sp[2,])/v2)
+
+## dt[dt<0] <- Inf
+choice <- apply(dt,2,which.min)
+rt <- dt[cbind(choice,1:n)]
+    
+## Which are finished?
+done <- rt <= p["swt"]
+n2 <- sum(!done)
+      
+## Distance left to travel for those not finished
+B1 <- p["b"] - (sp[1,!done] + p["swt"]*v1[!done]) 
+B2 <- p["b"] - (sp[2,!done] + p["swt"]*v2[!done]) 
+        
+## Stage 2 LBA
+w1 <- msm::rtnorm(n2,p["muw1"],p["sv"],0)
+w2 <- msm::rtnorm(n2,p["muw2"],p["sv"],0)
+          
+## Race  
+dt <- rbind(B1/w1,B2/w2)
+## dt[dt<0] <- Inf
+choice[!done] <- apply(dt,2,which.min)
+rt[!done] <- p["swt"]+dt[cbind(choice[!done],1:n2)]
+          
+## save results
+cbind(choice=choice,rt=p["t_delay"]+rt)
+            
+}
+}
+
+system.time(DT1 <- rplba(n=1e2, p=pVec))
+head(DT1)
+
+\dontrun{
+system.time(DT2 <- cpda::rplba(n=1e2, pVec=pVec))
+head(DT2)
+}
+
+\dontrun{
+## Convert to data frame for plotting
+tmp1 <- data.frame(choice=factor(DT1[,1]), dt=DT1[,2])
+tmp2 <- data.frame(choice=factor(DT2[,1]), dt=DT2[,2])
+summary(tmp1[tmp1$choice==1,])
+summary(tmp2[tmp2$choice==1,])
+
+summary(tmp1[tmp1$choice==2,])
+summary(tmp2[tmp2$choice==2,])
+
+tmp1$package <- "cpda"
+tmp2$package <- "R"
+tmp0 <- rbind(tmp1, tmp2)
+tmp0$package <- factor(tmp0$package)
+
+require(lattice)
+lattice::histogram( ~ dt | package + choice, data = tmp0, aspect = 1,
+xlab = "Decision Time (s)")
+ 
+lattice::densityplot( ~ dt | package + choice, data = tmp0,   
+         xlab = "Decisoin Time (s)", bw = stats::bw.nrd0(tmp0$dt))
+}
 }
 

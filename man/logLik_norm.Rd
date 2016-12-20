@@ -3,11 +3,11 @@
 \name{logLik_norm}
 \alias{logLik_norm}
 \alias{logLik_norm2}
-\title{Compute FFT Log-likelihood for a Gaussian Distribution}
+\title{Compute Summed Log-likelihood for a Gaussian Distribution}
 \usage{
-logLik_norm(object, pVec, ns)
+logLik_norm(object, pVec, ns, h = 0, m = 0.8, p = 10)
 
-logLik_norm2(object, pVec, ns)
+logLik_norm2(object, pVec, ns, h = 0, m = 0.8, p = 10)
 }
 \arguments{
 \item{object}{a vector storing empirical data}
@@ -15,14 +15,37 @@ logLik_norm2(object, pVec, ns)
 \item{pVec}{parameter vector storing mean and standard deviation}
 
 \item{ns}{number of simulations.}
+
+\item{h}{KDE bandwidth. If not input been enter, the default is 
+Sliverman's rule of thumb; otherwise the function uses the input from
+the user;}
+
+\item{m}{a multiplier to adjust proportationally h. Default is 0.8}
+
+\item{p}{a precision parameter defines the number of grid as power of 2.
+Default value is 10 (i.e., 2^10).}
 }
 \value{
 Log-likelihood; plus PDF, grid centers, and PDF_hist
 }
 \description{
 This is a wrapper function to approximate a Gaussian distribution, using
-KDE-FFT method. To retrieve more outputs and replicate Holmes's example 1,
-please use \code{logLik_norm2}.
+KDE-FFT method. To retrieve more outputs, use \code{logLik_norm2}.
+}
+\details{
+\code{logLik_norm2} is identical to \code{logLik_norm}, except returning 
+four elements:
+
+\itemize{
+\item \bold{\emph{LL}}, summed, logged likelihood. This is the same as the 
+return value from \code{logLik_plba}. 
+\item \bold{\emph{PDF}}, a numeric vector storing \emph{logged} 
+probability densities for individual data point.
+\item \bold{\emph{z}}, a numeric vector storing centre points of the 
+simulated histogram (i.e., grid centre)
+\item \bold{\emph{PDF_hist}} a numeric vector stoing the count of simulated
+data point in each bin 
+}
 }
 \examples{
 pVec <- c(mu=5, sigma=1)
@@ -33,8 +56,8 @@ ll2 <- logLik_norm2(y, pVec, 1e5)
 str(ll1); str(ll2)
 
 plot(ll2$z, ll2$PDF_hist, type="l", lty=2,
-main="Normal Distribution",xlab="x",ylab="L(x|beta)")
-lines(y, ll2$PDF, col="red", lwd = 1.5)
+main="Normal Distribution",xlab="x",ylab="L(x|theta)")
+lines(y, exp(ll2$PDF), col="red", lwd = 1.5)
 
 }
 

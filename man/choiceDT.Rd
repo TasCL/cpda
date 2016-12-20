@@ -7,18 +7,20 @@
 choiceDT(data, pVec)
 }
 \arguments{
-\item{data}{a double matrix with the first column stores choice (0==error; 
+\item{data}{a matrix with the first column stores choice (0==error; 
 1==correct), and the second column stores RTs in second.}
 
-\item{pVec}{a double vector storing pLBA model parameters. The sequence is 
-critical. It is, A, b, muv1, muv2, t_ND, muw1, muw2, t_delay, sv, swt.}
+\item{pVec}{a vector storing pLBA model parameters. The sequence is 
+critical. It is, A, b, muv1, muv2, t_ND, muw1, muw2, t_delay, sv, swt. 
+See \code{\link{rplba}} for an explanation of the parameters.}
 }
 \value{
 A two-element list with decision time for accumulator 1 and 2.
 }
 \description{
-This function takes pLBA parameters and converts choice RTs, stored in a 
-matrix to choice DTs, stored in a list with two numeric vectors.
+This function only takes pLBA parameters and converts choice RTs to choice  
+DTs in a matrix form. This is just a convenient function used interanlly by
+\code{logLik_plba}.
 }
 \examples{
 data(lba)
@@ -26,12 +28,6 @@ pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51,
           muw2=3.69, t_delay=0.31,  sv=1, swt=0.5)
            
 DTs <- cpda::choiceDT(data.matrix(d), pVec)
-
-## Wrong sequence
-pVecWrong <- c(A=1.51, muv1=3.32, muw1=1.51, muv2=2.24, muw2=3.69,
-              t_delay=0.31, t_ND=0.08, b=2.7, sv=1, swt=0.5)
-DTX <- cpda::choiceDT(data.matrix(d), pVecWrong)
-head(DTX)
            
 }
 

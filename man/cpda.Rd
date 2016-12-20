@@ -6,7 +6,7 @@
 \alias{cpda-package}
 \title{Probability Density Approximation}
 \description{
-Implement C++ enhanced probability density approximation
+This package implements probability density approximation in C++ and Open MP
 }
 \author{
 Yi-Shin Lin <yishin.lin@utas.edu.au> \cr
