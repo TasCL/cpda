@@ -1,3 +1,16 @@
+/*   Copyright (C) <2016>  <Yi-Shin Lin>
+ *   This program is free software; you can redistribute it and/or modify it 
+ *   under the terms of the GNU General Public License as published by the Free
+ *   Software Foundation; version 2
+ *    
+ *   This program is distributed in the hope that it will be useful, but 
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ *   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License 
+ *   for more details.
+ *    
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 #include <cpda.hpp>
 
 /* DEMC algorithm */
@@ -5,7 +18,7 @@
 //' Generate a Gamma Vector 
 //'
 //' This is part of DEMC algorithm. \code{gammaVec} generates a gamma vector to 
-//' facilitate vector-based element-wise compuation at C++.
+//' facilitate element-wise compuation at C++.
 //' 
 //' @param n number of parameters. 
 //' @param gamma a tuning parameter for gamma mutation. Usually set at 2.38  
@@ -14,8 +27,6 @@
 //' pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51,  
 //'           muw2=3.69, t_delay=0.31,  sv=1, swt=0.5)
 //' gamma <- gammaVec(length(pVec), 2.38)
-//' @export
-// [[Rcpp::export]]
 arma::vec gammaVec(int n, double gamma) {
   arma::vec out(n) ;     
   for(int i=0; i<n; i++) // d-dimension
@@ -26,27 +37,27 @@ arma::vec gammaVec(int n, double gamma) {
   return out ;
 }
 
-
-//' Pick Two Other Chains Randomly
+//' Pick Other Chains Randomly
 //'
-//' This is part of DEMC algorithm. The function picks three other chains (0, 
-//' 1, 2), except the currently processed one (k).
+//' This is part of DEMC algorithm. The function randomly chooses n chains, but
+//' not the current processed one (k) in a set of \code{length(chains)} 
+//' chains.
 //'
-//' @param k an integer indicating which chain is currently running. This has
-//' to be an integer and with the range of 0 to nchain-1. There is no check to
-//' preventing the function from crashing, if the user enter an irregular
-//' number.
+//' @param k an integer indicating which chain is currently running. This must
+//' be an integer within the range of 0 to \code{nchain-1} (C index). No check
+//' for errorly using R index, because this is an internal function.
 //' @param n number of picked chains.
-//' @param chains a vector of chain index, e.g., 0:24.  
+//' @param chains a numeric vector of chain index, e.g., 0:24.  
 //' @return a column vector
 //' @keywords pickchains
 //' @examples
 //' nchain <- 24
-//' chainSeq <- (1:24)-1 ## Use C++ index
-//' pickchains(3, 2, chainSeq)
+//' chainSeq <- (1:24)-1 ## Convert to C index
 //' 
-//' @export
-// [[Rcpp::export]]
+//' ## Current processing chain is the fourth chain (index=3) 
+//' ## We wish to pick 2 chains out of 24 chains
+//' pickchains(3, 2, chainSeq) 
+//' 
 arma::vec pickchains(int k, int n, std::vector<int> chains) {
   chains.erase(chains.begin()+k) ;
   arma::vec chains0  = arma::conv_to<arma::vec>::from(chains);
@@ -55,19 +66,22 @@ arma::vec pickchains(int k, int n, std::vector<int> chains) {
   return out ;
 }
 
-//' DEMC Algorithm  
+//' Crossover Sampler   
 //'
-//' This is part of DEMC algorithm. This function uses crossover sampler to 
-//' proposal a new parameter vector. 
+//' This is part of DEMC algorithm. \code{crossover} proposes a set of new 
+//' parameters based on crossover algorithm. 
 //' 
 //' @param useTheta a npar x nchain matrix 
 //' @param gamma a gamma vector. 
 //' @param k current chain index. Note chain index starts from 0.
 //' @param rp ter Braak's (2006) b, setting the range of the uniform 
-//' distribution that derived epsilon. This is usually set 0.001 or suggested 
-//' by ter Braak (ROT) 1e-4.   
+//' distribution that derives epsilon. This is usually set 0.001 (Andrew 
+//' Heathcote's ROT) or ter Braak suggested using 1e-4.  My experience is 1e-3
+//' is OK, haven't had too many experience using 1e-4.  
 //' @return a column vector
-//' @keywords a matrix
+//' @references Ter Braak, C. J. F. (2006). A Markov Chain Monte Carlo version 
+//' of the genetic algorithm Differerntial Evolution: easy Bayesian computing
+//' for real parameter spaces. 
 //' @examples
 //' pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51,  
 //'           muw2=3.69, t_delay=0.31, sv=1, swt=0.5)
@@ -82,8 +96,6 @@ arma::vec pickchains(int k, int n, std::vector<int> chains) {
 //' ## Current chain index is 0 (C-based index)
 //' crossover(useTheta, gamma, 0, 1e-4)
 //' 
-//' @export
-// [[Rcpp::export]]
 arma::vec crossover(arma::mat useTheta, arma::vec gamma, int k, double rp) {
   int npar   = useTheta.n_rows ;   // useTheta is npar x nchain; 
   int nchain = useTheta.n_cols;
@@ -101,7 +113,8 @@ arma::vec crossover(arma::mat useTheta, arma::vec gamma, int k, double rp) {
 
 //' Initialise a pLBA Bayeisan Sample
 //'
-//' This functions initialises a pLBA sample 
+//' This functions initialises a pLBA sample. The function is imcompleted. 
+//' The user should not use.  
 //'
 //' @param pVec a vector storing pLBA model parameters. The sequence is 
 //' critical. It is, A, b, muv1, muv2, t_ND, muw1, muw2, t_delay, sv, swt. 
@@ -109,7 +122,6 @@ arma::vec crossover(arma::mat useTheta, arma::vec gamma, int k, double rp) {
 //' @keywords initialize_structures
 //' @return a list with 7 elements: param_old, param_chain, proposal, direction,
 //' LL_keep, nmc, and nchain
-//' @export
 //' @examples
 //' pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51,  
 //'           muw2=3.69, t_delay=0.31,  sv=1, swt=0.5)
@@ -126,7 +138,6 @@ arma::vec crossover(arma::mat useTheta, arma::vec gamma, int k, double rp) {
 //' ## $ direction: num [1:10, 1:24] NA NA NA NA NA NA NA NA NA NA ...
 //' ## $ LL_keep  : num [1:30, 1:24] NA NA NA NA NA NA NA NA NA NA ...
 //' 
-// [[Rcpp::export]]
 Rcpp::List init(arma::vec pVec, arma::vec setting)
 {
   // A  b muv1  muv2  t_ND  muw1  muw2 t_delay  sv  swt

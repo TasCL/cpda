@@ -1,6 +1,11 @@
 #include <cpda.hpp>
 #include <random>
 
+// Protect against compilers without OpenMP; e.g., OS X  clang
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 arma::vec pmax(arma::vec v, double min) {
   for (arma::vec::iterator it=v.begin(); it!=v.end(); it++)
   {
@@ -18,7 +23,7 @@ double gaussian(double y, arma::vec yhat, double h) {
   double x;
   int ns = yhat.n_elem;
   arma::vec result(ns);
-  //for(Rcpp::List::iterator it=samples.begin(); it!=samples.end(); ++it)
+  
   for(arma::vec::iterator it=yhat.begin(); it!=yhat.end(); ++it)
   {
     int i = std::distance(yhat.begin(), it);
@@ -27,15 +32,35 @@ double gaussian(double y, arma::vec yhat, double h) {
     result[i] = ( (1/(sqrt(2*arma::datum::pi))) * exp( -pow(x,2) / 2 ) ) / h;
   }
   // (1/N_s) * sigma K_h (x-x.tidle_j)
-  return ( arma::sum(result) / ns);
+  return ( arma::accu(result) / ns);
+}
+double gaussian_omp(double y, arma::vec yhat, double h) {
+  // standard gaussian kernel mean=0; sigma==1
+  double x;
+  int ns = yhat.n_elem;
+  arma::vec result(ns);
+  
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) firstprivate(y, yhat, h)  
+#endif
+  for(int j=0; j < ns; j++)
+  {
+    x = (y - yhat[j])/h;  
+    result[j] = ( (1/(sqrt(2*arma::datum::pi))) * exp( -pow(x,2) / 2 ) ) / h;
+  }
+  
+  return ( arma::accu(result) / ns);
 }
 
 //' A simple and fast quantile calculator
 //'
-//' A C++ version quantile function.
+//' A C++ quantile function.
 //'
 //' @param y a data vector
 //' @param q nth quantile. Enter proportion, such as .25 or .75.
+//' @examples
+//' y <- rnorm(100)
+//' q <- cquantile(y, .25) 
 //' @export
 // [[Rcpp::export]]
 double cquantile(arma::vec y, double q) {
@@ -52,6 +77,9 @@ double cquantile(arma::vec y, double q) {
 //'
 //' @param y a data vector
 //' @param m a multiplier to adjust the SROT proportionally.
+//' 
+//' @seealso
+//' \code{\link{bw.nrd}}, \code{\link{bandwidth.nrd}}.
 //' @export
 //' @examples
 //' data(lba)
