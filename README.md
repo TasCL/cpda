@@ -123,7 +123,7 @@ print(ll1+ll2) ## -3496.88
 ## From github
 devtools::install_github("TasCL/pda")
 ## From source: 
-install.packages("pda_0.0.0.9.tar.gz", repos = NULL, type="source")
+install.packages("pda_0.0.1.3.tar.gz", repos = NULL, type="source")
 ```
 
 ## Prerequisites
