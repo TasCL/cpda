@@ -16,10 +16,11 @@ arma::vec getEdges(arma::vec z) {
   return out ;
 }
 
-arma::vec getFilter(double m, double M, double h) {
+/* set precision parameter here too */ 
+arma::vec getFilter(double m, double M, double h, double p) {
   // cannoical Gaussian kernel
-  double tmp0    = 2 * arma::datum::pi * (std::pow(2, 10) / (M-m)) * 0.5 ;
-  arma::vec tmp1 = arma::linspace<arma::vec>(0, 1, 1 + (std::pow(2, 10)/2)) ;
+  double tmp0    = 2 * arma::datum::pi * (std::pow(2, p) / (M-m)) * 0.5 ;
+  arma::vec tmp1 = arma::linspace<arma::vec>(0, 1, 1 + (std::pow(2, p)/2)) ;
   arma::vec freq = tmp0 * tmp1 ;
   arma::vec s2   = arma::pow(freq, 2) ; // s^2 on p17
   double h2      = std::pow(h, 2) ;
@@ -79,20 +80,22 @@ double logLik_fft(arma::vec y, arma::vec yhat, double h=0,
                   double m=0.8, double p=10) {
   
   if (h==0) { h = bwNRD0(yhat, m); } else { h = m*h; } 
-
-  double z0 = std::min(y.min(), yhat.min()) - 3 * h;
-  double z1 = std::max(y.max(), yhat.max()) + 3 * h;
+  arma::vec y_     = arma::sort(y) ;
+  arma::vec yhat_  = arma::sort(yhat) ;
+  double z0 = std::min(y_.min(), yhat_.min()) - 3 * h;
+  double z1 = std::max(y_.max(), yhat_.max()) + 3 * h;
+  
   arma::vec z        = arma::linspace<arma::vec>(z0, z1, std::pow(2, p)) ;
   arma::vec binEdges = getEdges(z) ;
-  arma::vec filter   = getFilter(z0, z1, h) ;  // Gauss filter
+  arma::vec filter   = getFilter(z0, z1, h, p) ;  // Gauss filter
   double dt          = z[1] - z[0] ;
   arma::vec PDF_tmp ;
   
-  arma::vec signal          = density(yhat, binEdges, dt) ;
+  arma::vec signal          = density(yhat_, binEdges, dt) ;
   arma::cx_vec PDF_fft      = arma::fft(signal) ;
   arma::cx_vec PDF_fft_filt = filter % PDF_fft ;
   arma::vec PDF_smoothed    = arma::real(arma::ifft(PDF_fft_filt)) ;
-  arma::interp1(z, PDF_smoothed, y, PDF_tmp);
+  arma::interp1(z, PDF_smoothed, y_, PDF_tmp);
   arma::vec PDF = arma::log(pmax(PDF_tmp, std::pow(10, -10))) ;
   return arma::accu(PDF);
 }
@@ -205,28 +208,31 @@ double logLik_fft(arma::vec y, arma::vec yhat, double h=0,
 // [[Rcpp::export]]
 Rcpp::List logLik_fft2(arma::vec y, arma::vec yhat, double h=0, 
                        double m=0.8, double p=10) {
-  if (h==0) { h = bwNRD0(yhat, m);  
-  } else { h = m*h; } 
+  if (h==0) { h = bwNRD0(yhat, m); } else { h = m*h; } 
   
-  double z0   = std::min(y.min(), yhat.min()) - 3 * h;
-  double z1   = std::max(y.max(), yhat.max()) + 3 * h;
+  arma::vec y_     = arma::sort(y) ;
+  arma::vec yhat_  = arma::sort(yhat) ;
+
+  double z0   = std::min(y_.min(), yhat_.min()) - 3 * h;
+  double z1   = std::max(y_.max(), yhat_.max()) + 3 * h;
   arma::vec z = arma::linspace<arma::vec>(z0, z1, std::pow(2, p)) ;
   arma::vec binEdges = getEdges(z) ;
-  arma::vec filter   = getFilter(z0, z1, h) ;  // Gauss filter
+  arma::vec filter   = getFilter(z0, z1, h, p) ;  // Gauss filter
   double dt          = z[1] - z[0] ;
-  arma::vec signal   = density(yhat, binEdges, dt) ;
+  arma::vec signal   = density(yhat_, binEdges, dt) ;
   arma::cx_vec PDF_fft      = arma::fft(signal) ;
   arma::cx_vec PDF_fft_filt = filter % PDF_fft ;
   arma::vec PDF_smoothed    = arma::real(arma::ifft(PDF_fft_filt)) ;
   
   arma::vec PDF_tmp;   // Interpolate the grid likelihood to the data
-  arma::interp1(z, PDF_smoothed, y, PDF_tmp);
-  arma::vec PDF = arma::log(pmax(PDF_tmp, std::pow(10, -10))) ;
-  double LL     = arma::accu(PDF);
-  
+  arma::interp1(z, PDF_smoothed, y_, PDF_tmp);
+  arma::vec PDF    = arma::log(pmax(PDF_tmp, std::pow(10, -10))) ;
+  arma::mat PDFMat = arma::join_horiz(y_, PDF); // return data matching PDF
+  double LL        = arma::accu(PDF);
+
   Rcpp::List out = Rcpp::List::create(
     Rcpp::Named("LL")        = LL,
-    Rcpp::Named("PDF")       = PDF,
+    Rcpp::Named("PDF")       = PDFMat,
     Rcpp::Named("z")         = z,
     Rcpp::Named("PDF_hist")  = signal);
   return out ;

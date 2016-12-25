@@ -6,6 +6,18 @@
 
 using namespace Rcpp;
 
+// choiceDT
+arma::mat choiceDT(arma::mat data, arma::vec pVec);
+RcppExport SEXP cpda_choiceDT(SEXP dataSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(choiceDT(data, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
 // logLik_norm
 double logLik_norm(arma::vec object, arma::vec pVec, int ns, double h, double m, double p);
 RcppExport SEXP cpda_logLik_norm(SEXP objectSEXP, SEXP pVecSEXP, SEXP nsSEXP, SEXP hSEXP, SEXP mSEXP, SEXP pSEXP) {
@@ -102,6 +114,54 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rlba
+arma::mat rlba(int n, arma::vec pVec);
+RcppExport SEXP cpda_rlba(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rlba(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rplba1
+arma::mat rplba1(int n, arma::vec pVec);
+RcppExport SEXP cpda_rplba1(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba1(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rplba2
+arma::mat rplba2(int n, arma::vec pVec);
+RcppExport SEXP cpda_rplba2(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba2(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rplba3
+arma::mat rplba3(int n, arma::vec pVec);
+RcppExport SEXP cpda_rplba3(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba3(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
 // logLik_fft
 double logLik_fft(arma::vec y, arma::vec yhat, double h, double m, double p);
 RcppExport SEXP cpda_logLik_fft(SEXP ySEXP, SEXP yhatSEXP, SEXP hSEXP, SEXP mSEXP, SEXP pSEXP) {
@@ -129,54 +189,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type m(mSEXP);
     Rcpp::traits::input_parameter< double >::type p(pSEXP);
     rcpp_result_gen = Rcpp::wrap(logLik_fft2(y, yhat, h, m, p));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rlba
-arma::mat rlba(int n, arma::vec pVec);
-RcppExport SEXP cpda_rlba(SEXP nSEXP, SEXP pVecSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
-    rcpp_result_gen = Rcpp::wrap(rlba(n, pVec));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rplba
-arma::mat rplba(int n, arma::vec pVec);
-RcppExport SEXP cpda_rplba(SEXP nSEXP, SEXP pVecSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
-    rcpp_result_gen = Rcpp::wrap(rplba(n, pVec));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rplba_omp
-arma::mat rplba_omp(int n, arma::vec pVec);
-RcppExport SEXP cpda_rplba_omp(SEXP nSEXP, SEXP pVecSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
-    rcpp_result_gen = Rcpp::wrap(rplba_omp(n, pVec));
-    return rcpp_result_gen;
-END_RCPP
-}
-// choiceDT
-arma::mat choiceDT(arma::mat data, arma::vec pVec);
-RcppExport SEXP cpda_choiceDT(SEXP dataSEXP, SEXP pVecSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
-    rcpp_result_gen = Rcpp::wrap(choiceDT(data, pVec));
     return rcpp_result_gen;
 END_RCPP
 }
