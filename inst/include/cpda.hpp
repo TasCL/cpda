@@ -1,4 +1,4 @@
-#include <cpda/pLBA.hpp>
+#include <cpda/lba.hpp>
 #include <cpda/logLik.hpp>
 #include <cpda/tnorm.hpp>
 #include <cpda/util.hpp>
