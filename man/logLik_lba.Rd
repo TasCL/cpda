@@ -5,9 +5,9 @@
 \alias{logLik_lba2}
 \title{Compute Summed Log-likelihood for a LBA Model}
 \usage{
-logLik_lba(object, pVec, ns, h = 0, m = 0.8, p = 10)
+logLik_lba(object, pVec, ns = 100000L, h = 0, m = 0.8, p = 10)
 
-logLik_lba2(object, pVec, ns, h = 0, m = 0.8, p = 10)
+logLik_lba2(object, pVec, ns = 100000L, h = 0, m = 0.8, p = 10)
 }
 \arguments{
 \item{object}{a matrix storing empirical choice RT data. First column must
@@ -17,7 +17,7 @@ be choices (1 & 2) and second column must bve RTs in seconds.}
 A1, A2, mu1, mu2, sigma1, sigma2, t01, and t02. 1 and 2 stand for 
 accumulator 1 and 2, respectively.}
 
-\item{ns}{number of simulations.}
+\item{ns}{number of simulations. Default is 1e5.}
 
 \item{h}{KDE bandwidth. If not given, the default \code{h} is 
 Sliverman's rule of thumb; otherwise the function uses the input from

@@ -5,16 +5,16 @@
 \alias{logLik_norm2}
 \title{Compute Summed Log-likelihood for a Gaussian Distribution}
 \usage{
-logLik_norm(object, pVec, ns, h = 0, m = 0.8, p = 10)
+logLik_norm(object, pVec, ns = 100000L, h = 0, m = 0.8, p = 10)
 
-logLik_norm2(object, pVec, ns, h = 0, m = 0.8, p = 10)
+logLik_norm2(object, pVec, ns = 100000L, h = 0, m = 0.8, p = 10)
 }
 \arguments{
 \item{object}{a vector storing empirical data}
 
 \item{pVec}{parameter vector storing mean and standard deviation}
 
-\item{ns}{number of simulations.}
+\item{ns}{number of simulations. Default is 1e5.}
 
 \item{h}{KDE bandwidth. If not input been enter, the default is 
 Sliverman's rule of thumb; otherwise the function uses the input from

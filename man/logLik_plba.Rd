@@ -5,19 +5,19 @@
 \alias{logLik_plba2}
 \title{Compute Summed Log-likelihood for a pLBA Model}
 \usage{
-logLik_plba(object, pVec, ns, h = 0, m = 0.8, p = 10)
+logLik_plba(object, pVec, ns = 100000L, h = 0, m = 0.8, p = 10)
 
-logLik_plba2(object, pVec, ns, h = 0, m = 0.8, p = 10)
+logLik_plba2(object, pVec, ns = 100000L, h = 0, m = 0.8, p = 10)
 }
 \arguments{
 \item{object}{a matrix storing empirical choice RT data. First column must
 stores choices and second column stores RTs in seconds.}
 
 \item{pVec}{a vector storing pLBA model parameters. The sequence is 
-critical. It is, A, b, muv1, muv2, t_ND, muw1, muw2, t_delay, sv, swt.}
+critical. it is A1, A2, b1, b2, v1, v2, w1, w2, sv1, sv2, sw1, sw2,
+rD, swt, and t0.}
 
-\item{ns}{number of simulations. Usually \code{cpda} can handle up to 1e6. 
-Use \code{gpda} if large simulation is required.}
+\item{ns}{number of simulations. Default is 1e5.}
 
 \item{h}{KDE bandwidth. If not input been enter, the default is 
 Sliverman's rule of thumb; otherwise the function uses the input from
@@ -59,41 +59,60 @@ data point in each bin
 ## I demonstrate how to use the build-in logLik_plba to calculate
 ## pLBA densities. set.seed(123) is to produce the same result.
 rm(list=ls())
-pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51, 
-          muw2=3.69, t_delay=0.31, sv=1, swt=0.5)
-          
+pVec <- c(A1=1.51, A2=1.51, b1=2.7, b2=2.7, v1=3.32, v2=2.24,
+            w1=1.51, w2=3.69, sv1=1, sv2=1, sw1=1, sw2=1, rD=0.31, 
+            swt=0.5, t0=0.08)
+  
 data(lba)
+d$Response <- ifelse(d$Response==0, 1, 2)
 dMat <- data.matrix(d); head(dMat)
-
-set.seed(123)
-samp   <- cpda::rplba(1e5, pVec); head(samp)
-h   <- 0.8*bw.nrd0(samp[,2]); h
+n <- 1e5
+  
 set.seed(123)
 ll0 <- cpda::logLik_plba(dMat, pVec, 1e5, h=h, m=1); ll0
-## [1] -7254.58
+      
 set.seed(123)
-llList <- cpda::logLik_plba2(dMat, pVec, 1e5, h=h, m=1); 
-str(llList)
-
+llList <- cpda::logLik_plba2(dMat, pVec, 1e5, h=h, m=1); str(llList)
 ## List of 4
-## $ LL      : num -7255
-## $ PDF     : num [1:1000, 1] -23 -23 -23 -23 -23 ...
-## $ z       : num [1:2048, 1] 0.175 0.179 0.184 0.188 0.192 ...
-## $ PDF_hist: num [1:2048, 1] 0 0 0 0 0 0 0 0 0 0 ...
-
-## Here I demonstrate use rplba and logLik_fft to produce identical 
+## $ LL      : num 327
+## $ PDF     : num [1:1000, 1:4] 1 1 1 1 1 1 1 1 1 1 ...
+## $ z       : num [1:2048, 1] 0.13 0.135 0.14 0.146 0.151 ...
+## $ PDF_hist: num [1:2048, 1] 0 0 0 0 0 ...
+        
+###################
+## Example 2     ##
+###################
+## Secondly, I demonstrate use rplba2 and logLik_fft to produce identical 
 ## result
+rm(list=ls())
+x <- cbind(rep(1:2,each=100),rep(seq(.5,2,length.out=100),2))
+pVec <- c(A1=1.51, A2=1.51, b1=2.7, b2=2.7, v1=3.32, v2=2.24,
+            w1=1.51, w2=3.69, sv1=1, sv2=1, sw1=1, sw2=1, rD=0.31, 
+            swt=0.5, t0=0.08)
+dt1 <- x[x[,1]==1,2] - pVec[15]
+dt2 <- x[x[,1]==2,2] - pVec[15]
+
 set.seed(123)
-samp   <- cpda::rplba(1e5, pVec); head(samp)
-DTMat  <- cpda::choiceDT(dMat, pVec)
-time1  <- sort(DTMat[DTMat[,1] == 1, 2])
-time2  <- sort(DTMat[DTMat[,1] == 2, 2])
-time1_ <- sort(samp[samp[,1] == 1, 2])
-time2_ <- sort(samp[samp[,1] == 2, 2])
-ll1 <- cpda::logLik_fft(time1, time1_, h=h, m=1); ll1 ## [1] -5492.192
-ll2 <- cpda::logLik_fft(time2, time2_, h=h, m=1); ll2 ## [1] -1762.388
-print(ll1+ll2)
-## [1] -7254.58
-         
+n <- 1e5
+samp <- cpda::rplba2(n, pVec); head(samp)
+dt1_ <- samp[samp[,1]==1,2] - pVec[15]
+dt2_ <- samp[samp[,1]==2,2] - pVec[15]
+logLik_fft(dt1, dt1_) + logLik_fft(dt2, dt2_)
+  
+set.seed(123)
+cpda::logLik_plba(x, pVec)
+  
+fft1 <- cpda::logLik_plba2(x, pVec)
+str(fft1)
+
+## choice RT PDF
+tmp0 <- fft1$PDF[fft1$PDF[,1] == 1, 2]
+tmp1 <- sort(x[x[,1]==1,2])
+all(tmp0==tmp1)
+  
+tmp3 <- fft1$PDF[fft1$PDF[,1] == 2,2]
+tmp4 <- sort(x[x[,1]==1,2])
+all(tmp3==tmp4)
+              
 }
 
