@@ -93,127 +93,12 @@ arma::mat rlba(int n, arma::vec pVec) {
   return out;
 }
 
-//' Generate Random Choice Response Times using pLBA Model
-//'
-//' This function uses two-accumulator piecewise LBA model to generate random 
-//' choice RTs. There are 4 variants: \code{rplbaR1}, 
-//' \code{rplbaR2}, \code{rplba1}, and \code{rplba2}. The former two implement
-//' in R script and the latter two implement in C++.  
-//' 
-//' 
-//' \code{rplba1} and \code{rplbaR1} use the following parameterisation: 
-//' \itemize{
-//' \item \bold{\emph{A}} start-point interval. \code{A} is the upper bound 
-//' of the interval \code{[0, A]}. An uniform distribution with bound, 
-//' \code{[0, A]} is used to generate a start point. Average amount of prior 
-//' evidence (i.e., before accumulation process even begins) across trials is 
-//' \code{A/2}. 
-//' \item \bold{\emph{b}} response threshold. \code{b-A/2} is a measure of 
-//' average \emph{response caution}.
-//' \item \bold{\emph{v1}} accumulator 1 drift rate, stage 1
-//' \item \bold{\emph{v2}} accumulator 2 drift rate, stage 1
-//' \item \bold{\emph{w1}} accumulator 1 drift rate, stage 2
-//' \item \bold{\emph{w2}} accumulator 2 drift rate, stage 2
-//' \item \bold{\emph{sv}} a common standard deviation for all drift rates 
-//' (muv1, muw1, muv2, muw2). 
-//' \item \bold{\emph{rD}} a delay period while drift rate switch to a 
-//' second stage process   
-//' \item \bold{\emph{t0}} non-decision time in second. 
-//' \item \bold{\emph{swt}} switch time, usually determined by experimental 
-//' design.
-//' }
-//' 
-//' \code{rplba2} and \code{rplbaR2} use the following parameterisation: 
-//' 
-//' \itemize{
-//' \item \bold{\emph{A1}} start-point interval of the accumulator 1. 
-//' \item \bold{\emph{A2}} start-point interval of the accumulator 2. 
-//' \item \bold{\emph{b1}} accumulator 1 response threshold. 
-//' \item \bold{\emph{b2}} accumulator 2 response threshold. 
-//' \item \bold{\emph{v1}} accumulator 1 drift rate, stage 1
-//' \item \bold{\emph{v2}} accumulator 2 drift rate, stage 1
-//' \item \bold{\emph{w1}} accumulator 1 drift rate, stage 2
-//' \item \bold{\emph{w2}} accumulator 2 drift rate, stage 2
-//' \item \bold{\emph{sv1}} the standard deviation of accumulator 1 drirt rate
-//' during stage 1. 
-//' \item \bold{\emph{sv2}} the standard deviation of accumulator 2 drirt rate
-//' during stage 1. 
-//' \item \bold{\emph{sw1}} the standard deviation of accumulator 1 drirt rate
-//' during stage 2. 
-//' \item \bold{\emph{sw2}} the standard deviation of accumulator 2 drirt rate
-//' during stage 2. 
-//' \item \bold{\emph{rD}} a delay period while drift rate switch to a 
-//' second stage process   
-//' \item \bold{\emph{swt}} switch time, usually determined by experimental 
-//' design
-//' \item \bold{\emph{t0}} non-decision time in second. 
-//' }
-//'
-//' @param n number of observations. Must be an integer 
-//' @param pVec a numeric vector storing pLBA model parameters. The sequence is
-//' critical. For \code{rplba1}, it is, A, b, v1, v2, w1, w2, sv, rD, swt, and 
-//' t0. For \code{rplba2}, it is A1, A2, b1, b2, v1, v2, w1, w2, sv1, sv2, sw1, sw2,
-//' rD, swt, and t0.
-//' @return A \code{n x 2} matrix with a first column storing choices and second 
-//' column storing response times.
+//' @rdname rplba
 //' @export
-//' @examples
-//' ## pVec stands for parameter vector
-//' n <- 1e5
-//' pVec1 <- c(A=1.51, b=2.7, v1=3.32, v2=2.24,  w1=1.51,  w2=3.69,  
-//'            sv=1, rD=0.31, swt=0.5, t0=0.08)
-//'  
-//' pVec2 <- c(A1=1.51, A2=1.51, b1=2.7, b2=2.7, v1=3.32, v2=2.24,
-//'            w1=1.51, w2=3.69, sv1=1, sv2=1, sw1=1, sw2=1, rD=0.31, 
-//'            swt=0.5, t0=0.08)
-//'            
-//' system.time(dat1 <- cpda::rplba1(n, pVec1))
-//' system.time(dat2 <- cpda::rplba2(n, pVec2))
-//' system.time(dat3 <- cpda::rplbaR1(n, pVec1))
-//' system.time(dat4 <- cpda::rplbaR2(n, pVec2))
-//' 
-//' ## Their density plots do match, if n is set large (1e5).
-//' tmp1 <- data.frame(choice=factor(dat1[,1]), rt=dat1[,2])
-//' tmp2 <- data.frame(choice=factor(dat2[,1]), rt=dat2[,2])
-//' tmp3 <- data.frame(choice=factor(dat3[,1]), rt=dat3[,2])
-//' tmp4 <- data.frame(choice=factor(dat4[,1]), rt=dat4[,2])
-//' tmp1$fun <- "rplba1"
-//' tmp2$fun <- "rplba2"
-//' tmp3$fun <- "rplba1-R"
-//' tmp4$fun <- "rplba2-R"
-//' df     <- rbind(tmp1, tmp2, tmp3, tmp4)
-//' df$fun <- factor(df$fun)
-//' 
-//' require(lattice)
-//' histogram(~rt | fun + choice , data=df, breaks="fd", type="density", 
-//'              xlab="Response Time (s)", 
-//'              panel=function(x, ...) {
-//'                panel.histogram(x, ...)
-//'                panel.densityplot(x, darg=list(kernel="gaussian"),...)
-//' })
-//'   
-//' cb <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", 
-//'         "#0072B2", "#D55E00", "#CC79A7")
-//'         
-//' require(ggplot2)
-//' ggplot(data=df, aes(x=rt, fill=fun, color=fun)) +
-//'     geom_density(alpha=0.2) +
-//'     facet_wrap(~ choice) +
-//'     xlab("RT (s)") + ylab("Density") +
-//'     scale_fill_manual(values=cb)
-//'     
-//' ## Use hist to plot one after another    
-//' hist(tmp1$rt, breaks="fd", freq=FALSE, , xlab="RT (s)", main="pLBA")
-//' lines(density(tmp2$rt), col="lightblue", lty="dashed",   lwd=1.5)
-//' lines(density(tmp3$rt), col="orange",    lty="dotdash",  lwd=2)
-//' lines(density(tmp4$rt), col="darkgreen", lty="longdash", lwd=2.5)
 // [[Rcpp::export]]
 arma::mat rplba1(int n, arma::vec pVec) {
   //  A  b  v1   v2  w1   w2  sv  rD  swt t0
   //  0  1   2    3   4    5   6   7    8  9 
-  
-  /* A  b muv1  muv2  t_ND  muw1  muw2 t_delay  sv  swt; c(0, 1, 2, 3, 4)
-     0  1    2     3     4     5     6       7   8    9; c(5, 6, 7) */
   arma::vec x1(n), x2(n), v1(n), v2(n), dt1(n), dt2(n);  
   arma::vec choice(n), winDT(n), undone(n);
   double T0 = pVec[7] + pVec[8]; // rate delay + switch  
@@ -258,7 +143,7 @@ arma::mat rplba1(int n, arma::vec pVec) {
   return out;
 }
 
-//' @rdname rplba1
+//' @rdname rplba
 //' @export
 // [[Rcpp::export]]
 arma::mat rplba2(int n, arma::vec pVec) {
@@ -309,10 +194,239 @@ arma::mat rplba2(int n, arma::vec pVec) {
   return out;
 }
 
-//' @rdname rplba1
+//' Generate Random Choice Response Times using pLBA Model
+//'
+//' This function uses two-accumulator piecewise LBA model to generate random 
+//' choice RTs. There are 3 variants: \code{rplba}, \code{rplba1}, and 
+//' \code{rplba2}. Each of them has a corresponding R script version,
+//' \code{rplbaR}, \code{rplbaR1}, and \code{rplbaR2}, for the purpose of 
+//' speed testing. Because the difference of random number generators in C and 
+//' R, they do not generate exactly identical RTs.  When generating large nubmer
+//' of observations, the distributions generated by R and C should match each 
+//' other.  
+//' 
+//' The main function \code{rplba} implements a flexible  
+//' version of pLBA random number generator. It uses the following 
+//' parameterisation (order matter):
+//'  
+//' \itemize{
+//' \item \bold{\emph{A1}} accumulator 1 start-point upper bound. \code{A} is  
+//' the upper bound of the interval \code{[0, A]}, which is used by an uniform 
+//' distribution to generate a start-point. Average amount of 
+//' prior evidence (i.e., before accumulation process even begins) across trials
+//' is \code{A/2}.
+//' \item \bold{\emph{A2}} accumulator 2 start-point upper bound.
+//' \item \bold{\emph{B1}} accumulator 1 traveling distance. Note this is not 
+//' a decision threshold!. LBA convention denotes decision threshold/caution as 
+//' b (lowercase) and traveling distance as B (uppercase). \code{B=b-A} is 
+//' the traveling distance, and \code{b-A/2} is a measure of average 
+//' \emph{decision caution}.
+//' \item \bold{\emph{B2}} accumulator 2 traveling distance.
+//' \item \bold{\emph{C1}} the amount of traveling distance change for 
+//' accumulator 1 at the stage 2. 
+//' \item \bold{\emph{C2}} the amount of traveling distance change for 
+//' accumulator 2 at the stage 2.
+//' \item \bold{\emph{v1}} accumulator 1 drift rate, stage 1
+//' \item \bold{\emph{v2}} accumulator 2 drift rate, stage 1
+//' \item \bold{\emph{w1}} accumulator 1 drift rate, stage 2
+//' \item \bold{\emph{w2}} accumulator 2 drift rate, stage 2
+//' \item \bold{\emph{sv1}} accumulator 1 drift rate standard deviation, 
+//' stage 1.
+//' \item \bold{\emph{sv2}} accumulator 2 drift rate standard deviation, 
+//' stage 1.
+//' \item \bold{\emph{sw1}} accumulator 1 drift rate standard deviation, 
+//' stage 2.
+//' \item \bold{\emph{sw2}} accumulator 2 drift rate standard deviation, 
+//' stage 2.
+//' \item \bold{\emph{rD}} the delay duration while stage 1 drift rate switches
+//' to stage 2 drift rate 
+//' \item \bold{\emph{tD}} the delay duration while stage 1 threshold switches
+//' to stage 2 threshold 
+//' \item \bold{\emph{swt}} switch time, usually determined by experimental 
+//' design. 
+//' \item \bold{\emph{t0}} non-decision time in second. 
+//' }
+//' 
+//' \code{rplba1} uses the following parameterisation: 
+//' 
+//' \itemize{
+//' \item \bold{\emph{A}} a common start-point interval for both accumulators. 
+//' \item \bold{\emph{b}} a common response threshold for both accumulators.  
+//' \item \bold{\emph{v1}} accumulator 1 drift rate, stage 1
+//' \item \bold{\emph{v2}} accumulator 2 drift rate, stage 1
+//' \item \bold{\emph{w1}} accumulator 1 drift rate, stage 2
+//' \item \bold{\emph{w2}} accumulator 2 drift rate, stage 2
+//' \item \bold{\emph{sv}} a common standard deviation for both accumulators
+//' \item \bold{\emph{rD}} a delay period while drift rate switch to a 
+//' second stage process   
+//' \item \bold{\emph{swt}} switch time, usually determined by experimental 
+//' design
+//' \item \bold{\emph{t0}} non-decision time in second. 
+//' }
+//' 
+//' \code{rplba2} uses the following parameterisation: 
+//' 
+//' \itemize{
+//' \item \bold{\emph{A1}} start-point interval of the accumulator 1. 
+//' \item \bold{\emph{A2}} start-point interval of the accumulator 2. 
+//' \item \bold{\emph{b1}} accumulator 1 response threshold. 
+//' \item \bold{\emph{b2}} accumulator 2 response threshold. 
+//' \item \bold{\emph{v1}} accumulator 1 drift rate, stage 1
+//' \item \bold{\emph{v2}} accumulator 2 drift rate, stage 1
+//' \item \bold{\emph{w1}} accumulator 1 drift rate, stage 2
+//' \item \bold{\emph{w2}} accumulator 2 drift rate, stage 2
+//' \item \bold{\emph{sv1}} the standard deviation of accumulator 1 drirt rate
+//' during stage 1. 
+//' \item \bold{\emph{sv2}} the standard deviation of accumulator 2 drirt rate
+//' during stage 1. 
+//' \item \bold{\emph{sw1}} the standard deviation of accumulator 1 drirt rate
+//' during stage 2. 
+//' \item \bold{\emph{sw2}} the standard deviation of accumulator 2 drirt rate
+//' during stage 2. 
+//' \item \bold{\emph{rD}} a delay period while drift rate switch to a 
+//' second stage process   
+//' \item \bold{\emph{swt}} switch time, usually determined by experimental 
+//' design
+//' \item \bold{\emph{t0}} non-decision time in second. 
+//' }
+//'
+//' @param n number of observations. Must be an integer 
+//' @param pVec a numeric vector storing pLBA model parameters. The sequence is
+//' critical. See details for the sequence. 
+//' @return A \code{n x 2} matrix with a first column storing choices and second 
+//' column storing response times.
 //' @export
+//' @examples
+//' ################
+//' ## Example 1  ##
+//' ################
+//' pVec3.1 <- c(A1=1.51, A2=1.51, B1=1.2, B2=1.2, C1=.3, C2=.3, v1=3.32, 
+//'              v2=2.24, w1=1.51, w2=3.69, sv1=1, sv2=1, sw1=1, sw2=1, rD=0.1,
+//'              tD=.1, swt=0.5, t0=0.08)
+//' pVec3.2 <- c(A1=1.51, A2=1.51, B1=1.2, B2=1.2, C1=.3, C2=.3, v1=3.32, 
+//'              v2=2.24, w1=1.51, w2=3.69, sv1=1, sv2=1, sw1=1, sw2=1, rD=0.1,
+//'              tD=.15, swt=0.5, t0=0.08)
+//' pVec3.3 <- c(A1=1.51, A2=1.51, B1=1.2, B2=1.2, C1=.3, C2=.3, v1=3.32, 
+//'              v2=2.24, w1=1.51, w2=3.69, sv1=1, sv2=1, sw1=1, sw2=1, rD=0.15,
+//'              tD=.1, swt=0.5, t0=0.08)
+//' 
+//' n <- 1e5
+//' set.seed(123); system.time(dat5.1 <- cpda::rplbaR(n, pVec3.1))
+//' set.seed(123); system.time(dat5.2 <- cpda::rplbaR(n, pVec3.2))
+//' set.seed(123); system.time(dat5.3 <- cpda::rplbaR(n, pVec3.3))
+//' set.seed(123); system.time(dat6.1 <- cpda::rplba( n, pVec3.1))
+//' set.seed(123); system.time(dat6.2 <- cpda::rplba( n, pVec3.2))
+//' set.seed(123); system.time(dat6.3 <- cpda::rplba( n, pVec3.3))
+//' tmp5.1 <- data.frame(choice=factor(dat5.1[,1]), rt=dat5.1[,2])
+//' tmp5.2 <- data.frame(choice=factor(dat5.2[,1]), rt=dat5.2[,2])
+//' tmp5.3 <- data.frame(choice=factor(dat5.3[,1]), rt=dat5.3[,2])
+//' tmp6.1 <- data.frame(choice=factor(dat6.1[,1]), rt=dat6.1[,2])
+//' tmp6.2 <- data.frame(choice=factor(dat6.2[,1]), rt=dat6.2[,2])
+//' tmp6.3 <- data.frame(choice=factor(dat6.3[,1]), rt=dat6.3[,2])
+//'   
+//' tmp5.1$fun <- "R"
+//' tmp5.2$fun <- "R"
+//' tmp5.3$fun <- "R"
+//' tmp6.1$fun <- "C"
+//' tmp6.2$fun <- "C"
+//' tmp6.3$fun <- "C"
+//' 
+//' tmp5.1$vec <- "1"
+//' tmp5.2$vec <- "2"
+//' tmp5.3$vec <- "3"
+//' tmp6.1$vec <- "1"
+//' tmp6.2$vec <- "2"
+//' tmp6.3$vec <- "3"
+//' 
+//' df <- rbind(tmp5.1, tmp5.2, tmp5.3, tmp6.1, tmp6.2, tmp6.3)
+//' df$fun <- factor(df$fun)
+//'         
+//' ## Show R and C functions produce almost identical distributions        
+//' \dontrun{ 
+//' ## Set up a colour palette 
+//' cb <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
+//'         "#D55E00", "#CC79A7")
+//'         
+//' require(ggplot2)
+//' ggplot(data=df, aes(x = rt, fill=fun, color=fun)) +
+//'   geom_density(alpha=0.2) +
+//'   facet_grid(vec~ choice) +
+//'   scale_fill_manual(values=cb)
+//'   
+//' ## Or you can use lattice or base graphics  
+//' require(lattice)
+//' histogram( ~rt | vec+choice+fun, data=df, breaks="fd", type="density", 
+//'            xlab="Response Time (s)", 
+//'            panel=function(x, ...) {
+//'                  panel.histogram(x, ...)
+//'                  panel.densityplot(x, darg=list(kernel="gaussian"),...)
+//'   })
+//' }
+//'              
+//' par(mfrow=c(3,2))
+//' hist(tmp5.1[tmp5.1$choice==1,"rt"], breaks="fd", col="gray", freq=FALSE, 
+//'        xlab="RT (s)", main="pLBA-Choice 1")
+//' lines(density(tmp6.1[tmp6.1$choice==1,"rt"]), col="red", lty="dashed",  lwd=1.5)
+//'   
+//' hist(tmp5.1[tmp5.1$choice==2,"rt"], breaks="fd", col="gray", freq=FALSE, 
+//'        xlab="RT (s)", main="pLBA-Choice 2")
+//' lines(density(tmp6.1[tmp6.1$choice==2,"rt"]), col="red", lty="dashed",  lwd=1.5)
+//'   
+//' #############
+//' hist(tmp5.2[tmp5.2$choice==1,"rt"], breaks="fd", col="gray", freq=FALSE, 
+//'        xlab="RT (s)", main="pLBA-Choice 1")
+//' lines(density(tmp6.2[tmp6.2$choice==1,"rt"]), col="red", lty="dashed",  lwd=1.5)
+//'     
+//' hist(tmp5.2[tmp5.2$choice==2,"rt"], breaks="fd", col="gray", freq=FALSE, 
+//'          xlab="RT (s)", main="pLBA-Choice 2")
+//' lines(density(tmp6.2[tmp6.2$choice==2,"rt"]), col="red", lty="dashed",  lwd=1.5)
+//'     
+//' #############
+//' hist(tmp5.3[tmp5.3$choice==1,"rt"], breaks="fd", col="gray", freq=FALSE, 
+//'          xlab="RT (s)", main="pLBA-Choice 1")
+//' lines(density(tmp6.3[tmp6.3$choice==1,"rt"]), col="red", lty="dashed",  lwd=1.5)
+//'       
+//' hist(tmp5.3[tmp5.3$choice==2,"rt"], breaks="fd", col="gray", freq=FALSE, 
+//'            xlab="RT (s)", main="pLBA-Choice 2")
+//' lines(density(tmp6.3[tmp6.3$choice==2,"rt"]), col="red", lty="dashed",  lwd=1.5)
+//' par(mfrow=c(1,1))
+//' 
+//' ################
+//' ## Example 2  ##
+//' ################
+//' pVec1 <- c(A=1.51, b=2.7, v1=3.32, v2=2.24,  w1=1.51,  w2=3.69,  
+//'            sv=1, rD=0.31, swt=0.5, t0=0.08)
+//'  
+//' pVec2 <- c(A1=1.51, A2=1.51, b1=2.7, b2=2.7, v1=3.32, v2=2.24,
+//'            w1=1.51, w2=3.69, sv1=1, sv2=1, sw1=1, sw2=1, rD=0.31, 
+//'            swt=0.5, t0=0.08)
+//'            
+//' system.time(dat1 <- cpda::rplba1( n, pVec1))
+//' system.time(dat2 <- cpda::rplba2( n, pVec2))
+//' system.time(dat3 <- cpda::rplbaR1(n, pVec1))
+//' system.time(dat4 <- cpda::rplbaR2(n, pVec2))
+//' 
+//' tmp1 <- data.frame(choice=factor(dat1[,1]), rt=dat1[,2])
+//' tmp2 <- data.frame(choice=factor(dat2[,1]), rt=dat2[,2])
+//' tmp3 <- data.frame(choice=factor(dat3[,1]), rt=dat3[,2])
+//' tmp4 <- data.frame(choice=factor(dat4[,1]), rt=dat4[,2])
+//' tmp1$fun <- "rplba1"
+//' tmp2$fun <- "rplba2"
+//' tmp3$fun <- "rplba1-R"
+//' tmp4$fun <- "rplba2-R"
+//' tmp0 <- rbind(tmp1, tmp2, tmp3, tmp4)
+//' tmp0$fun <- factor(tmp0$fun)
+//'   
+//' \dontrun{   
+//' require(ggplot2)
+//' ggplot(data = tmp0, aes(x = rt, fill=fun, color=fun)) +
+//'     geom_density(alpha=0.2) +
+//'     facet_grid(.~ choice) +
+//'     scale_fill_manual(values=cb)
+//' }
+//'     
 // [[Rcpp::export]]
-arma::mat rplba3(int n, arma::vec pVec) {
+arma::mat rplba(int n, arma::vec pVec) {
    // A1  A2  B1  B2  C1  C2  v1  v2  w1  w2  sv1  sv2 sw1  sw2  rD  tD  swt t0
    //  0   1   2   3   4   5   6   7   8   9   10   11  12   13  14  15  16  17 
    arma::vec x1(n), x2(n), v1(n), v2(n), dt1(n), dt2(n);  
