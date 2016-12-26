@@ -1,7 +1,6 @@
 
-#' @rdname rplba1
+#' @rdname rplba
 #' @export
-#' @importFrom msm rtnorm
 rplbaR1 <- function(n=10, pVec=c(A=1.51, b=2.7, v1=3.32, v2=2.24, w1=1.51, w2=3.69, 
                           sv=1, rD=0.31, swt=0.5, t0=0.08)) 
 {
@@ -10,8 +9,8 @@ rplbaR1 <- function(n=10, pVec=c(A=1.51, b=2.7, v1=3.32, v2=2.24, w1=1.51, w2=3.
   T0 <- pVec["swt"] + pVec["rD"]; T0
 
   ## Stage 1 LBA
-  v1 <- msm::rtnorm(n, pVec["v1"], pVec["sv"],0); 
-  v2 <- msm::rtnorm(n, pVec["v2"], pVec["sv"],0); 
+  v1 <- rtnorm(n, pVec["v1"], pVec["sv"],0); 
+  v2 <- rtnorm(n, pVec["v2"], pVec["sv"],0); 
   sp <- matrix(runif(2*n, 0, pVec["A"]), nrow=2)
   
   ## Race
@@ -43,9 +42,8 @@ rplbaR1 <- function(n=10, pVec=c(A=1.51, b=2.7, v1=3.32, v2=2.24, w1=1.51, w2=3.
   
 }
 
-#' @rdname rplba1
+#' @rdname rplba
 #' @export
-#' @importFrom msm rtnorm
 rplbaR2 <- function(n=10, pVec=c(A1=1.51, A2=1.51, b1=2.7, b2=2.7, v1=3.32, v2=2.24, 
                           w1=1.51, w2=3.69, sv1=1, sv2=1, sw1=1, 
                           sw2=1,  rD=0.31,  swt=0.5, t0=0.08)) {
@@ -88,10 +86,9 @@ rplbaR2 <- function(n=10, pVec=c(A1=1.51, A2=1.51, b1=2.7, b2=2.7, v1=3.32, v2=2
   
 }
 
-#' @rdname rplba1
+#' @rdname rplba
 #' @export
-#' @importFrom msm rtnorm
-rplbaR3 <- function(n, pVec=c(A1=1.5, A2=1.5, B1=1.2, B2=1.2, C1=.3, C2=.3,
+rplbaR <- function(n, pVec=c(A1=1.5, A2=1.5, B1=1.2, B2=1.2, C1=.3, C2=.3,
                               v1=3.32, v2=2.24, w1=1.51, w2=3.69, sv1=1, sv2=1,
                               sw1=1, sw2=1, rD=0.3, tD=.3, swt=0.5, t0=0.08)) {
 
