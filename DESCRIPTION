@@ -1,7 +1,7 @@
 Package: cpda
 Type: Package
 Title: Probability Density Approximation
-Version: 0.0.1.4
+Version: 0.0.1.5
 Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
                     role = c("aut", "cre")),
   person("Andrew", "Heathcote", email = "andrew.heathcote@utas.edu.au", 

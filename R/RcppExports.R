@@ -582,8 +582,8 @@ logLik_fft <- function(y, yhat, h = 0, m = 0.8, p = 10) {
 #' \itemize{
 #' \item \bold{\emph{LL}}, summed, logged likelihood. This is the same as the 
 #' return value from \code{logLik_fft}. 
-#' \item \bold{\emph{PDF}}, a numeric vector storing logged probability 
-#' densities for individual data point.
+#' \item \bold{\emph{PDF}}, a matrix storing individual data point (column 1)
+#' and logged probability densities (column 2).
 #' \item \bold{\emph{z}}, a numeric vector storing centre points of the 
 #' simulated histogram (i.e., grid centre)
 #' \item \bold{\emph{PDF_hist}} a numeric vector stoing the count of simulated
