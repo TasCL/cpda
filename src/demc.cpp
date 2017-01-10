@@ -77,7 +77,7 @@ arma::vec pickchains(int k, int n, std::vector<int> chains) {
 //' @param rp ter Braak's (2006) b, setting the range of the uniform 
 //' distribution that derives epsilon. This is usually set 0.001 (Andrew 
 //' Heathcote's ROT) or ter Braak suggested using 1e-4.  My experience is 1e-3
-//' is OK, haven't had too many experience using 1e-4.  
+//' is OK, haven't had too much experience using 1e-4.  
 //' @return a column vector
 //' @references Ter Braak, C. J. F. (2006). A Markov Chain Monte Carlo version 
 //' of the genetic algorithm Differerntial Evolution: easy Bayesian computing

@@ -25,8 +25,7 @@ h <- bw.nrd0(samp)
 x <- seq(-3,3,length.out=100)
 
 ## By default the following does point wise (i.e., for each element in x) 
-## smoothing using bandwidth = h*m, where m=0.8 by defualt as recommeded 
-## by Holmes
+## smoothing using bandwidth = h*m, where m=0.8 by default
 system.time(pw <- cpda::logLik_pw(x,samp))
 ##    user  system elapsed 
 ##   2.488   0.136   2.623 
