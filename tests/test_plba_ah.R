@@ -56,13 +56,6 @@ dev.off()
 
 
 ############################################################
-## I am afraid I do not understand how to test this part,
-## by using your codes, because you listed only functions.
-## Apology in advance that I used the examples in cpda
-## help page as test. 
-############################################################
-
-############################################################
 ## Here start the content of cpda::rplba help page with
 ## added comments
 ############################################################
