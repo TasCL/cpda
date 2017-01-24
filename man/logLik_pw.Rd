@@ -9,24 +9,21 @@ logLik_pw(y, yhat, h = NA, m = 0.8, parallel = FALSE)
 \arguments{
 \item{y}{a vector storing empirical data (e.g., RTs)}
 
-\item{yhat}{a vector storing simulated data (e.g., simualted RTs,
-using a LBA model).}
+\item{yhat}{a vector storing simulated data}
 
 \item{h}{kernel bandwidth. Default value is 0.8 times Silverman's Rule of
-Thumb, based on simulated data (i.e., yhat). Otherwise, a user entered 
-value (multiplied by m) will be used.}
+Thumb, based on simulated data (i.e., yhat).}
 
-\item{m}{a bandwidth multiplier. Default is 0.8. Enter 1, uf you do not}
+\item{m}{a bandwidth multiplier. Default is 0.8.}
 
-\item{parallel}{a switch for parallel processing. Default is FALSE.}
+\item{parallel}{a switch for parallel processing via OMP. Default is FALSE.}
 }
 \value{
 a vector storing log-likelihood for each data point
 }
 \description{
-\code{logLik_pw} takes individual data point and feeds them sequentially
-(or in parallel via Open MP) into gaussian kernel to get probability 
-density directly.
+\code{logLik_pw} takes individual data points as inputs sequentially
+(or in parallel via Open MP) to a gaussian kernel to calculate directly.
 }
 \examples{
 #########################
@@ -54,7 +51,7 @@ str(plba)
 ## $ eDT2: num [1:2980] 0.703 0.693 0.704 0.462 0.468 ...
 
 ## Use pointwise pda to get likelihoods for each data point
-## This algorithm calculates gaussian kernel directly
+## This algorithm calculates via a standard gaussian kernel directly
 ## (1) First argument, plba$DT1, is the data.
 ## (2) Second argument, plba$eDT1, is the simulation.
 ## (3) The outputs are log-likelihoods. 
