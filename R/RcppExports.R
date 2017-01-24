@@ -563,42 +563,39 @@ logLik_fft <- function(y, yhat, h = 0, m = 0.8, p = 10) {
     .Call('cpda_logLik_fft', PACKAGE = 'cpda', y, yhat, h, m, p)
 }
 
-#' Compute Summed Log-Likelihood and Return Likelihoods for Each Data Point  
+#' Compute Summed Log-Likelihood 
 #'
-#' This function is identical to \code{logLik_fft}, except returning more
-#' elements. Unlike \code{logLik_pw} calculates directly Gaussian kernel
-#' (see p. 14, eq. 1.2 in Holmes, 2015), \code{logLik_fft2} and 
-#' \code{logLie_fft},  
+#' \code{logLik_fft2} uses an identical algorithm as \code{logLik_fft}, but
+#' return more elements. Differing from \code{logLik_pw}, \code{logLik_fft2} 
+#' and \code{logLie_fft},  
 #' \enumerate{
 #' \item takes Monte Carlo simulations,
 #' \item transforms them to spectral domain using FFT,
-#' \item applies Gaussian kernel to smooth them,
+#' \item applies a standard Gaussian kernel to smooth them,
 #' \item transforms them back to signal domain and
-#' \item interpolates linearly the simulation density/histogram to the observed data 
+#' \item interpolates linearly the simulation histogram to the observed data 
 #' points to obtain estimated likelihoods.
 #' }
 #'  
 #' \code{logLik_fft2} returns four elements:
 #' \itemize{
-#' \item \bold{\emph{LL}}, summed, logged likelihood. This is the same as the 
+#' \item \bold{\emph{LL}}, summed, logged likelihood. This is identical as the 
 #' return value from \code{logLik_fft}. 
 #' \item \bold{\emph{PDF}}, a matrix storing individual data point (column 1)
 #' and logged probability densities (column 2).
-#' \item \bold{\emph{z}}, a numeric vector storing centre points of the 
+#' \item \bold{\emph{z}}, a vector storing centre points of the 
 #' simulated histogram (i.e., grid centre)
-#' \item \bold{\emph{PDF_hist}} a numeric vector stoing the count of simulated
+#' \item \bold{\emph{PDF_hist}} a vector stoing the count of simulated
 #' data point in each histogram bin 
 #' } 
 #'
 #' @param y a scalar or vector storing empirical data.
 #' @param yhat a scalar or vector storing simulated data (e.g., 
 #' \code{rnorm(100)}).
-#' @param h the bandwidth of kernel density estimation. If not given, 
-#' \code{logLik_fft} will use Sliverman's rule of thumb; otherwise the 
-#' function uses the input from the user; 
+#' @param h the bandwidth for kernel density estimation. If not given, 
+#' \code{logLik_fft} will use Sliverman's rule of thumb
 #' @param m a multiplier to adjust \code{h} proportationally. Default is 0.8. 
-#' This applies also when one enters his/her own bandwidth. So if one wish 
-#' not to adjust bandwidth, enter \code{m=1}. 
+#' This applies also when the user enters his/her own bandwidth. 
 #' @param p a precision parameter defines the number of grid as power of 2.
 #' Default value is 10 (i.e., 2^10). 
 #' @return A list with 4 elements.
