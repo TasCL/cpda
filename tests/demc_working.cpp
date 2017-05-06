@@ -188,48 +188,6 @@ Rcpp::List init(arma::vec pVec, arma::vec setting)
 }
 
 
-//' Switch Model's Prior Distributions
-//'
-//' This function computes the prior for the given parameter set. The
-//' prior for each parameter here is just a uniform distribution for
-//' simplicity.
-//'
-//' @param pVec a vector storing pLBA model parameters. The sequence is 
-//' critical. It is, A, b, muv1, muv2, t_ND, muw1, muw2, t_delay, sv, swt. 
-//' @return a prior probability density summed across parameters
-//' @export
-//' @examples
-//' pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51,  
-//'           muw2=3.69, t_delay=0.31,  sv=1, swt=0.5)
-//' SwitchModelPrior(pVec)
-//' 
-// [[Rcpp::export]]
-double SwitchModelPrior(arma::vec pVec) {
-  // A  b muv1  muv2  t_ND  muw1  muw2 t_delay  sv  swt
-  // 0  1    2     3     4     5     6       7   8    9
-  // block_1 = c(0, 1, 2, 3, 4); ## A, b, muv1, muv2, t_ND
-  // block_2 = c(5, 6, 7);       ## muw1, muw2, t_delay
-  
-  bool A_range    = (pVec[0] <  0 || pVec[0] > 10) ;
-  bool b_range    = (pVec[1] <  0 || pVec[1] > 10) ;
-  bool muv1_range = (pVec[2] < -3 || pVec[2] > 7) ;
-  bool muw1_range = (pVec[5] < -3 || pVec[5] > 7) ;
-  bool muv2_range = (pVec[3] < -3 || pVec[3] > 7) ;
-  bool muw2_range = (pVec[6] < -3 || pVec[6] > 7) ;
-  bool t_delay_range = (pVec[7] < 0 || pVec[7] > 1) ;
-  bool t_ND_range    = (pVec[4] < 0 || pVec[4] > 1) ;
-  
-  double pA  = A_range ? 0 : 0.1 ;
-  double pb  = b_range ? 0 : 0.1 ;
-  double pV1 = muv1_range ? 0 : 0.1 ;
-  double pW1 = muw1_range ? 0 : 0.1 ;
-  double pV2 = muv1_range ? 0 : 0.1 ;
-  double pW2 = muw1_range ? 0 : 0.1 ;
-  double pT  = t_delay_range ? 0 : 1 ;
-  double pND = t_ND_range ? 0 : 1 ;
-  
-  return (pA*pb*pT*pV1*pV2*pW1*pW2*pND) ;
-}
 
 
 //' Run Hierarchical Bayesian Model Using DEMC with 2-block piece LBA Model
