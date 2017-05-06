@@ -54,4 +54,3 @@ curve(dtnorm(x, lower=-2, upper=2), add=TRUE, col="tomato", lwd=2)
 mtext("dnorm(x)", adj = 0)
 mtext("dtnorm(x)", col = "tomato", adj = 1)
 }
-

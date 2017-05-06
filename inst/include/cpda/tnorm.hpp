@@ -9,6 +9,8 @@ inline double alg3(const double lower, const double upper);
 inline double alg4(const double lower, const double upper);
 double rtn_scalar(const double mean,  const double sd, const double lower,
   const double upper);
+arma::vec rtn_arma(int n, const double mean,  const double sd, const double lower,
+  const double upper);
 double dtn_scalar(const double x, const double mean, const double sd,
   const double lower, const double upper, int islog);
 void rtn(Rcpp::NumericVector &mean, Rcpp::NumericVector &sd,

@@ -6,6 +6,8 @@
 #include <omp.h>
 #endif
 
+//' @export
+// [[Rcpp::export]]
 arma::vec pmax(arma::vec v, double min) {
   for (arma::vec::iterator it=v.begin(); it!=v.end(); it++)
   {
@@ -13,43 +15,11 @@ arma::vec pmax(arma::vec v, double min) {
   }
   return v ;
 }
+
 arma::vec getVec(double *x, int *nx) {
   arma::vec out(*nx);
   for(int i=0; i<*nx; i++) { out[i]=*(x+i); }
   return out;
-}
-double gaussian(double y, arma::vec yhat, double h) {
-  // standard gaussian kernel mean=0; sigma==1
-  double x;
-  int ns = yhat.n_elem;
-  arma::vec result(ns);
-  
-  for(arma::vec::iterator it=yhat.begin(); it!=yhat.end(); ++it)
-  {
-    int i = std::distance(yhat.begin(), it);
-    x = (y - *it)/h;  // z / h
-    // (1/h) * K(z/h); K_h(z)
-    result[i] = ( (1/(sqrt(2*arma::datum::pi))) * exp( -pow(x,2) / 2 ) ) / h;
-  }
-  // (1/N_s) * sigma K_h (x-x.tidle_j)
-  return ( arma::accu(result) / ns);
-}
-double gaussian_omp(double y, arma::vec yhat, double h) {
-  // standard gaussian kernel mean=0; sigma==1
-  double x;
-  int ns = yhat.n_elem;
-  arma::vec result(ns);
-  
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) firstprivate(y, yhat, h)  
-#endif
-  for(int j=0; j < ns; j++)
-  {
-    x = (y - yhat[j])/h;  
-    result[j] = ( (1/(sqrt(2*arma::datum::pi))) * exp( -pow(x,2) / 2 ) ) / h;
-  }
-  
-  return ( arma::accu(result) / ns);
 }
 
 //' A simple and fast quantile calculator
@@ -60,7 +30,7 @@ double gaussian_omp(double y, arma::vec yhat, double h) {
 //' @param q nth quantile. Enter proportion, such as .25 or .75.
 //' @examples
 //' y <- rnorm(100)
-//' q <- cquantile(y, .25) 
+//' q <- cquantile(y, .25)
 //' @export
 // [[Rcpp::export]]
 double cquantile(arma::vec y, double q) {
@@ -77,31 +47,19 @@ double cquantile(arma::vec y, double q) {
 //'
 //' @param y a data vector
 //' @param m a multiplier to adjust the SROT proportionally.
-//' 
+//'
 //' @seealso
 //' \code{\link{bw.nrd}}, \code{\link{bandwidth.nrd}}.
 //' @export
 //' @examples
 //' data(lba)
 //' h <-cpda::bwNRD0(plba$DT1, 0.8)
-//' 
+//'
 // [[Rcpp::export]]
 double bwNRD0(arma::vec y, double m) {
-  int n = y.n_elem ;
-  double out ;
-  if(n < 2) {
-    // fprintf(stderr, "need at least 2 data points\n");
-    out = 0.9 * y[0] * pow(n, -0.2) ;
-  } else {
-    double q25 = cquantile(y, 0.25) ;
-    double q75 = cquantile(y, 0.75) ;
-    // double h   = (q75-q25)/1.34 ;
-    double h   = (q75-q25);
-    double sd  = arma::stddev(y) ;
-    double IS  = std::min(h, sd);
-    out = 0.9 * IS * pow(n, -0.2) ;
-  }
-  return m*out ;
+  int n = y.n_elem;
+  return m*0.9*std::min((cquantile(y, .75) - cquantile(y, .25)),
+  arma::stddev(y)) * std::pow((double)n, -.2);
 }
 
 struct genInt {
@@ -111,16 +69,43 @@ struct genInt {
 } ; // class generator:
 
 std::vector<int> generateIntVec (int n) {
-  // generate an integer vector based on C index from 0 to n-1 
+  // generate an integer vector based on C index from 0 to n-1
   std::vector<int> out(n); // a empty vector with n integer mem space.
-  genInt generator; // 
+  genInt generator; //
   std::generate(out.begin(), out.end(), generator);
   return out;
 }
 
 std::vector<int> shuffle(int n) {
-  std::vector<int> out = generateIntVec(n); 
+  std::vector<int> out = generateIntVec(n);
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::shuffle(out.begin(), out.end(), std::default_random_engine(seed));
   return out ;
-} 
+}
+
+//' @export
+// [[Rcpp::export]]
+arma::uvec histc(arma::vec x, arma::vec edge) {
+  arma::uvec hc = arma::histc(x, edge) ;
+  // arma::vec bincount  = arma::conv_to<arma::vec>::from(hc);
+  return hc ;
+}
+
+//' @export
+// [[Rcpp::export]]
+arma::vec histd(arma::vec yhat, arma::vec z, int n) {
+  double dt, total_count, unit;
+  arma::vec bin_edges, bc, pdf, out;
+  // 1. Use the range of empirical data to define min and max
+  // 2. Get a linear spaced 2^p numbers within [min-3*h, max+3*h] 
+  dt = z[1] - z[0];
+  bc = arma::conv_to<arma::vec>::from(arma::histc(yhat, getEdges(z))); // 1025
+  // If this is a defective PDF, the user must tell 'histd' the total count.
+  if(n==0) {total_count = arma::accu(bc);} else {total_count=n;}
+  unit = dt * total_count;
+  arma::vec unitVec(bc.n_elem); unitVec.fill(unit);
+  pdf = bc / unitVec;
+  out = pdf.rows(0, pdf.size()-2); // 0 to 1023
+  return out;
+}
+

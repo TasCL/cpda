@@ -1,11 +1,15 @@
 # Probability Density Approximation
 
-This package implements probability density approximation, using Armadillo C++  
-and Open MP libraries.
+This package implements probability density approximation, using Armadillo C++.
+This package provides separate modules for random number generators and 
+likelihood functions. This design allows the uses who are not familar with C/C++
+to build their PDA model in R. However, this is not ideal for efficient 
+computation.
 
 ## Getting Started
 
-The following examples are retrieved from cpda help pages
+The following examples are retrieved from cpda old help pages. They need to be 
+updated.
 
 ```
 require(cpda)
@@ -175,9 +179,9 @@ print(ll1+ll2) ## -3496.88
 
 ```
 ## From github
-devtools::install_github("TasCL/pda")
+devtools::install_github("TasCL/cpda")
 ## From source: 
-install.packages("pda_0.0.1.5.tar.gz", repos = NULL, type="source")
+install.packages("pda_0.1.1.tar.gz", repos = NULL, type="source")
 ```
 
 ## Prerequisites
@@ -186,6 +190,12 @@ install.packages("pda_0.0.1.5.tar.gz", repos = NULL, type="source")
  - Rcpp package (>= 0.12.3)
  - RcppArmadillo (>= 0.6.700.6.0)
  
+## Contributors
+
+- Yi-Shin Lin <yishin.lin@utas.edu.au> 
+- Andrew Heathcote 
+- William Holmes 
+
 ## References
 
 * Holmes, W. (2015). A practical guide to the Probability Density

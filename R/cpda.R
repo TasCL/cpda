@@ -1,6 +1,6 @@
 #' Probability Density Approximation
 #'
-#' This package implements probability density approximation in C++ and Open MP
+#' This package implements probability density approximation in C++ 
 #'
 #' @keywords cpda
 #' @name cpda
@@ -16,90 +16,25 @@
 #' @useDynLib cpda
 NULL
 
-#' Point-wise Probability Density Approximation
-#'
-#' \code{logLik_pw} takes each observation and sequentially (or concurrently)
-#' via Open MP) conduct KDEs.
-#'
-#' @param y a vector storing empirical observations (e.g., RTs).
-#' @param yhat a vector storing simulations.
-#' @param h kernel bandwidth. Default value is 0.8 times Silverman's Rule of
-#' Thumb, based on simulated data (i.e., yhat).
-#' @param m a bandwidth multiplier. Default is 0.8.
-#' @param parallel a switch for parallel processing via OMP. Default is FALSE.
-#' @return a vector storing log-likelihoods
-#' @examples
-#' #########################
-#' ## Example 1           ##
-#' #########################
-#' ## Test whether logLik_pw match dnorm(0, log=TRUE)
-#' rm(list=ls())
-#' cpda::logLik_pw(0, rnorm(1e6)) ## -0.9228587
-#' dnorm(0, log=TRUE)             ## -0.9189385
-#'
-#' h <- 0.8*bw.nrd0(rnorm(1e6));            ## h==0.04541785
-#' cpda::logLik_pw(0, rnorm(1e6), h=h)      ## -0.9196711
-#' cpda::logLik_pw(0, rnorm(1e6), h=h, m=1) ## -0.9181807
-#'
-#' #########################
-#' ## Example 2           ##
-#' #########################
-#' ## Demo how to use logLik_pw to get pLBA likelihoods
-#' library(cpda); data(lba)
-#' str(plba)
-#' ## List of 4
-#' ## $ DT1 : num [1:695] 0.488 0.801 0.376 0.507 0.532 ...
-#' ## $ DT2 : num [1:305] 0.538 0.77 0.568 0.271 0.881 ...
-#' ## $ eDT1: num [1:7020] 0.475 0.346 0.42 0.401 0.368 ...
-#' ## $ eDT2: num [1:2980] 0.703 0.693 0.704 0.462 0.468 ...
-#'
-#' ## Use pointwise pda to get likelihoods for each data point
-#' ## This algorithm calculates via a standard gaussian kernel directly
-#' ## (1) First argument, plba$DT1, is the data.
-#' ## (2) Second argument, plba$eDT1, is the simulation.
-#' ## (3) The outputs are log-likelihoods.
-#'
-#' outputs <- logLik_pw(plba$DT1, plba$eDT1)
-#' sum(outputs) ## Get summed, logged likelihood, 278.6095
-#'
-#' #########################
-#' ## Example 3           ##
-#' #########################
-#' rm(list=ls())
-#' x <- seq(-3, 3, length.out=100) ## Data
-#' samp <- rnorm(1e6)
-#' h <- 0.8*stats::bw.nrd0(samp); h          ## Define bin
-#' system.time(pw1  <- logLik_pw(x, samp))
-#' system.time(pw2  <- logLik_pw(x, samp, h=h, m=0.8))
-#' system.time(pw3  <- logLik_pw(x, samp, h=h, m=1))
-#'
-#' plot(x, pw1,type="l", lty="dotted")
-#' lines(x, pw2, col="darkgreen", lty="dashed")
-#' lines(x, pw3, col="blue", lty="dotdash")
-#' lines(x, dnorm(x, log=TRUE), col="red")
-#'
-#' @export
-logLik_pw <- function(y, yhat, h=NA, m=0.8, parallel=FALSE) {
-  ## logLik_pw(0, rnorm(1e6)) ## error
-  y    <- as.double(sort(y))
-  yhat <- as.double(sort(yhat))
-  ny   <- as.integer(length(y))
-  ns   <- as.integer(length(yhat))
-  if(is.na(h)) {
-    h_ <- as.double(m*stats::bw.nrd0(yhat))
-  } else {
-    h_ <- as.double(m*h)
-  }
-
-  if (parallel) {
-    answer <- .C("logLik_pw_omp", y, yhat, ny, ns, h_,
-                 numeric(length(y)), PACKAGE='cpda')
-  } else {
-    answer <- .C("logLik_pw", y, yhat, ny, ns, h_,
-                 numeric(length(y)), PACKAGE='cpda')
-  }
-
-  return(answer[[6]])
-}
+# logLik_pw <- function(y, yhat, h=NA, m=0.8, n=0, parallel=FALSE) {
+#   y    <- as.double(y)
+#   yhat <- as.double(yhat)
+#   ny   <- as.integer(length(y))
+#   ns   <- as.integer(length(yhat))
+#   h_   <- ifelse(is.na(h), as.double(0), as.double(m*h))
+#   m_   <- as.double(m)
+#   n_   <- as.double(n)
+# 
+#   if (parallel) {
+#     out <- .C("logLik_pw_omp", y, yhat, ny, ns, h_, m_, n_,
+#                  numeric(length(y)), PACKAGE='cpda')
+#   } else {
+#     out <- .C("logLik_pw", y, yhat, ny, ns, h_, m_, n_,
+#                  numeric(length(y)), PACKAGE='cpda')
+#   }
+#   
+#   # return(out[[8]][y_idx])
+#   return(out[[8]])
+# }
 
 

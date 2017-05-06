@@ -1,0 +1,100 @@
+\begin{thebibliography}{11}
+\newcommand{\enquote}[1]{``#1''}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
+\providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{Beaumont(2010)}]{beaumont_approximate_2010}
+Beaumont MA (2010).
+\newblock \enquote{Approximate {Bayesian} {Computation} in {Evolution} and
+  {Ecology}.}
+\newblock \emph{Annual Review of Ecology, Evolution, and Systematics},
+  \textbf{41}(1), 379--406.
+\newblock \doi{10.1146/annurev-ecolsys-102209-144621}.
+\newblock
+  \urlprefix\url{http://dx.doi.org/10.1146/annurev-ecolsys-102209-144621}.
+
+\bibitem[{Braak(2006)}]{Braak2006}
+Braak CJFT (2006).
+\newblock \enquote{A Markov Chain Monte Carlo version of the genetic algorithm
+  Differential Evolution: easy Bayesian computing for real parameter spaces.}
+\newblock \emph{Statistics and Computing}, \textbf{16}(3), 239--249.
+\newblock ISSN 1573-1375.
+\newblock \doi{10.1007/s11222-006-8769-1}.
+\newblock \urlprefix\url{http://dx.doi.org/10.1007/s11222-006-8769-1}.
+
+\bibitem[{Brown and Heathcote(2008)}]{brown_simplest_2008}
+Brown SD, Heathcote A (2008).
+\newblock \enquote{The simplest complete model of choice response time: linear
+  ballistic accumulation.}
+\newblock \emph{Cognitive psychology}, \textbf{57}(3), 153--178.
+\newblock \doi{doi:10.1016/j.cogpsych.2007.12.002}.
+
+\bibitem[{Dawson(1988)}]{dawson_fitting_1988}
+Dawson MRW (1988).
+\newblock \enquote{Fitting the ex-{Gaussian} equation to reaction time
+  distributions.}
+\newblock \emph{Behavior Research Methods, Instruments, \& Computers},
+  \textbf{20}(1), 54--57.
+\newblock ISSN 0743-3808, 1532-5970.
+\newblock \doi{10.3758/BF03202603}.
+\newblock \urlprefix\url{https://link.springer.com/article/10.3758/BF03202603}.
+
+\bibitem[{Gelman(2014)}]{gelman_bayesian_2014}
+Gelman A (2014).
+\newblock \emph{Bayesian data analysis}.
+\newblock CRC Press, Boca Raton.
+\newblock ISBN 978-1-4398-4095-5 978-1-4398-4096-2.
+\newblock OCLC: 864304245.
+
+\bibitem[{Hoffman and Gelman(2014)}]{hoffman2014_nut}
+Hoffman MD, Gelman A (2014).
+\newblock \enquote{The no-u-turn sampler: {Adaptively} setting path lengths in
+  {Hamiltonian} {Monte} {Carlo}.}
+\newblock \emph{Journal of Machine Learning Research}, \textbf{15}(1).
+
+\bibitem[{Holmes(2015)}]{holmes_practical_2015}
+Holmes WR (2015).
+\newblock \enquote{A practical guide to the {Probability} {Density}
+  {Approximation} ({PDA}) with improved implementation and error
+  characterization.}
+\newblock \emph{Journal of Mathematical Psychology}, \textbf{68--69}, 13--24.
+\newblock \doi{10.1016/j.jmp.2015.08.006}.
+\newblock
+  \urlprefix\url{http://www.sciencedirect.com/science/article/pii/S0022249615000541}.
+
+\bibitem[{Silverman(1986)}]{silverman_density_1986}
+Silverman BW (1986).
+\newblock \emph{Density estimation for statistics and data analysis},
+  volume~26.
+\newblock CRC press.
+
+\bibitem[{Sisson and Fan(2010)}]{sisson_likelihood_2010}
+Sisson SA, Fan Y (2010).
+\newblock \enquote{Likelihood-free {Markov} chain {Monte} {Carlo}.}
+\newblock \emph{arXiv:1001.2058 [stat]}.
+\newblock ArXiv: 1001.2058, \urlprefix\url{http://arxiv.org/abs/1001.2058}.
+
+\bibitem[{Turner \emph{et~al.}(2013)Turner, Dennis, and Van~Zandt}]{Turner2013}
+Turner BM, Dennis S, Van~Zandt T (2013).
+\newblock \enquote{Likelihood-free {Bayesian} analysis of memory models.}
+\newblock \emph{Psychological Review}, \textbf{120}(3), 667--678.
+\newblock ISSN 1939-1471 0033-295X.
+\newblock \doi{10.1037/a0032458}.
+
+\bibitem[{Turner and Sederberg(2014)}]{turner_generalized_2014}
+Turner BM, Sederberg PB (2014).
+\newblock \enquote{A generalized, likelihood-free method for posterior
+  estimation.}
+\newblock \emph{Psychonomic Bulletin \& Review}, \textbf{21}(2), 227--250.
+\newblock ISSN 1069-9384, 1531-5320.
+\newblock \doi{10.3758/s13423-013-0530-0}.
+\newblock
+  \urlprefix\url{https://link.springer.com/article/10.3758/s13423-013-0530-0}.
+
+\end{thebibliography}

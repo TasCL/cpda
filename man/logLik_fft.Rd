@@ -4,34 +4,35 @@
 \alias{logLik_fft}
 \title{Compute Summed Log-Likelihood Using KDE-FFT}
 \usage{
-logLik_fft(y, yhat, h = 0, m = 0.8, p = 10)
+logLik_fft(y, yhat, h = 0, m = 0.8, p = 10, n = 0L)
 }
 \arguments{
-\item{y}{a scalar or vector storing empirical data.}
+\item{y}{a vector storing empirical data.}
 
-\item{yhat}{a scalar or vector storing simulated data (e.g., 
-\code{rnorm(100)}).}
+\item{yhat}{a vector storing simulated data (e.g., \code{rnorm(100)}).}
 
-\item{h}{the bandwidth of kernel density estimation. If not given, 
-\code{logLik_fft} will detect the default, \code{h==0} and accordingly 
-convert it to Sliverman's rule of thumb; otherwise the function uses 
-bandwidth entered by the user;}
+\item{h}{the bandwidth of kernel density estimation. If not given,
+\code{logLik_fft} will detect the default, \code{h==0} and accordingly
+convert it to Sliverman's rule of thumb; otherwise the function uses
+bandwidth entered by the user.}
 
-\item{m}{a multiplier to adjust \code{h} proportationally. Default is 0.8. 
+\item{m}{a multiplier to adjust \code{h} proportationally. Default is 0.8.
 If one wish not adjust bandwidth, s/he has to enter \code{m=1}.}
 
 \item{p}{a precision parameter defines the number of grid as power of 2.
 Default value is 10 (i.e., ngrid==2^10).}
+
+\item{n}{the number of simulation. When n=0, where the function will count
+the numbers of observation in the simulated histogram. If simulating 
+a defective distribution, one should enter the total number of simulation.}
 }
 \value{
-Summed log-likelihood
+Summed, logged likelihood
 }
 \description{
-This function uses KDE-FFT method to approximate probability density. 
-\code{logLik_fft} returns only one scalar value, which is summed, logged 
-likelihood. Use \code{logLik_fft2} to retrieve three additional elements: 
-\emph{PDF}, \emph{z} and \emph{PDF_hist}. See \code{\link{logLik_fft2}} for 
-further details.
+This function uses KDE-FFT method to approximate probability density.
+\code{logLik_fft} returns only one scalar value, which is summed, logged
+likelihood.
 }
 \examples{
 ## See logLik_fft2 for more examples
@@ -47,7 +48,6 @@ Approximation (PDA) with improved implementation and error characterization.
 doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
 }
 \seealso{
-\code{\link{bw.nrd}}, \code{\link{logLik_fft2}}, 
+\code{\link{bw.nrd}}, \code{\link{logLik_fft2}},
 \code{\link{bandwidth.nrd}}.
 }
-

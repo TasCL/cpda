@@ -23,4 +23,3 @@ h <-cpda::bwNRD0(plba$DT1, 0.8)
 \seealso{
 \code{\link{bw.nrd}}, \code{\link{bandwidth.nrd}}.
 }
-

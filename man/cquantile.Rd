@@ -16,6 +16,5 @@ A C++ quantile function.
 }
 \examples{
 y <- rnorm(100)
-q <- cquantile(y, .25) 
+q <- cquantile(y, .25)
 }
-

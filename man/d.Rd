@@ -22,4 +22,3 @@ head(d)
 ## 3        0    0.8806298     1
 }
 \keyword{dataset}
-

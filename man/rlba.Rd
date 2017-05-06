@@ -9,11 +9,11 @@ rlba(n, pVec)
 \arguments{
 \item{n}{number of observations. Must be an integer}
 
-\item{pVec}{a two-accumulator LBA parameter vector. The sequence is 
+\item{pVec}{a two-accumulator LBA parameter vector. The sequence is
 critical. It is, b1, b2, A1, A2, mu1, mu2, sigma1, sigma2, t01, and t02.}
 }
 \value{
-A matrix. First column stores choices and second column stores RTs 
+A matrix. First column stores choices and second column stores RTs
 in seconds
 }
 \description{
@@ -21,16 +21,16 @@ This function uses two-accumulator LBA model to generate random choice RTs.
 }
 \details{
 \itemize{
-\item \bold{\emph{b1}} response threshold for accumulator 1. 
-\item \bold{\emph{b2}} response threshold for accumulator 2. 
-\item \bold{\emph{A1}} starting point interval for accumulator 1. 
-\item \bold{\emph{A2}} starting point interval for accumulator 2. 
+\item \bold{\emph{b1}} response threshold for accumulator 1.
+\item \bold{\emph{b2}} response threshold for accumulator 2.
+\item \bold{\emph{A1}} starting point interval for accumulator 1.
+\item \bold{\emph{A2}} starting point interval for accumulator 2.
 \item \bold{\emph{mu1}} drift rate for accumulator 1.
-\item \bold{\emph{mu2}} drift rate for accumulator 2. 
+\item \bold{\emph{mu2}} drift rate for accumulator 2.
 \item \bold{\emph{sigma1}} drift rate standard deviation for accumulator 1.
 \item \bold{\emph{sigma2}} drift rate standard deviation for accumulator 2.
-\item \bold{\emph{t01}} non-decision time for accumulator 1. 
-\item \bold{\emph{t02}} non-decision time for accumulator 2. 
+\item \bold{\emph{t01}} non-decision time for accumulator 1.
+\item \bold{\emph{t02}} non-decision time for accumulator 2.
 }
 }
 \examples{
@@ -41,11 +41,13 @@ dat1 <- cpda::rlba(n, pVec)
 str(dat1)
 summary(dat1)
 
+pVec <- c(b=1, A=.5, v1=2.4, v2=1.6, sv1=1, sv2=1.2, t0=.5)
+dat1 <- cpda::rlba1(n, pVec)
+
 ## Compare to rtdists
-## dat2 <- rtdists::rLBA(n, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6), 
+## dat2 <- rtdists::rLBA(n, A=0.5, b=1, t0 = 0.5, mean_v=c(2.4, 1.6),
 ## sd_v=c(1,1.2))
 ## str(dat2)
 ## summary(dat2)
 
 }
-

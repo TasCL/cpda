@@ -194,3 +194,12 @@ rplbaR <- function(n, pVec=c(A1=1.5, A2=1.5, B1=1.2, B2=1.2, C1=.3, C2=.3,
   
   
 }
+
+
+
+#' @export
+rlba_test <- function(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5) {
+  out <- data.frame(rlba_internal(n, b, A, mean_v, sd_v, t0))
+  names(out) <- c("RT", "R")
+  return(out)
+}

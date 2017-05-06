@@ -1,4 +1,4 @@
-/*   Copyright (C) <2016>  <Yi-Shin Lin>
+/*   Copyright (C) <2017>  <Yi-Shin Lin>
  *   This program is free software; you can redistribute it and/or modify it 
  *   under the terms of the GNU General Public License as published by the Free
  *   Software Foundation; version 2
@@ -13,43 +13,46 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 #include <cpda.hpp>
 
-/* DEMC algorithm */
+/* DE-MC algorithm */
 
 //' Generate a Gamma Vector 
 //'
-//' This is part of DEMC algorithm. \code{gammaVec} generates a gamma vector to 
-//' facilitate element-wise compuation at C++.
+//' This is part of DEMC algorithm. \code{gammavec} generates a gamma vector 
+//' for element-wise compuation in Armadillo C++.
 //' 
-//' @param n number of parameters. 
-//' @param gamma a tuning parameter for gamma mutation. Usually set at 2.38  
+//' @param npar number of parameters. 
+//' @param gammamult a tuning parameter for gamma mutation. Default value is 2.38.
 //' @return a column vector
+//' @export
 //' @examples
 //' pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51,  
 //'           muw2=3.69, t_delay=0.31,  sv=1, swt=0.5)
-//' gamma <- gammaVec(length(pVec), 2.38)
-arma::vec gammaVec(int n, double gamma) {
-  arma::vec out(n) ;     
-  for(int i=0; i<n; i++) // d-dimension
-  { // an uniform random (.5, 1) 
-    double r = 0.5 * as_scalar(arma::randu(1)) + 0.5; 
-    out[i] = std::isnan(gamma) ? r : gamma/sqrt(2*n) ;
+//' gamma <- gammavec(length(pVec), 2.38)
+// [[Rcpp::export]]
+arma::vec gammavec(int npar, double gammamult=2.38) {
+  arma::vec out(npar);
+  for(int i=0; i<npar; i++) // d-dimension
+  { 
+    out[i] = (gammamult == 0) ? (0.5 * as_scalar(arma::randu(1)) + 0.5) : 
+    gammamult/std::sqrt(2.0*(double)npar) ;
   }
   return out ;
 }
 
 //' Pick Other Chains Randomly
 //'
-//' This is part of DEMC algorithm. The function randomly chooses n chains, but
-//' not the current processed one (k) in a set of \code{length(chains)} 
+//' This is part of DEMC algorithm. The function randomly samples \code{n}   
+//' chains out of \code{length(chains)} chains, excluding the kth chain.
 //' chains.
 //'
-//' @param k an integer indicating which chain is currently running. This must
-//' be an integer within the range of 0 to \code{nchain-1} (C index). No check
-//' for errorly using R index, because this is an internal function.
-//' @param n number of picked chains.
+//' @param k an integer indicating which chain is processed currently. This 
+//' must be an integer within the range of 0 to \code{nchain-1} (i.e., C index).
+//' No check for errorly using R index, because this is an internal function.
+//' @param n the numbers of chain to sample.
 //' @param chains a numeric vector of chain index, e.g., 0:24.  
 //' @return a column vector
 //' @keywords pickchains
+//' @export
 //' @examples
 //' nchain <- 24
 //' chainSeq <- (1:24)-1 ## Convert to C index
@@ -58,143 +61,188 @@ arma::vec gammaVec(int n, double gamma) {
 //' ## We wish to pick 2 chains out of 24 chains
 //' pickchains(3, 2, chainSeq) 
 //' 
+// [[Rcpp::export]]
 arma::vec pickchains(int k, int n, std::vector<int> chains) {
   chains.erase(chains.begin()+k) ;
-  arma::vec chains0  = arma::conv_to<arma::vec>::from(chains);
-  arma::vec shuffledChains = arma::shuffle(chains0) ;
-  arma::vec out = shuffledChains.rows(0, n-1) ;
-  return out ;
+  arma::vec shuffledChains = arma::shuffle(arma::conv_to<arma::vec>::from(chains)) ;
+  return shuffledChains.rows(0, n-1) ;
 }
 
-//' Crossover Sampler   
+//' Crossover and Migration Samplers    
 //'
-//' This is part of DEMC algorithm. \code{crossover} proposes a set of new 
-//' parameters based on crossover algorithm. 
+//' This is part of DE-MC algorithm (crossover) and Distributed Evolutionary 
+//' Monte Carlo (migration). Both samplers propose a set of new parameters. 
 //' 
-//' @param useTheta a npar x nchain matrix 
+//' @param theta a npar x nchain matrix 
 //' @param gamma a gamma vector. 
 //' @param k current chain index. Note chain index starts from 0.
 //' @param rp ter Braak's (2006) b, setting the range of the uniform 
-//' distribution that derives epsilon. This is usually set 0.001 (Andrew 
-//' Heathcote's ROT) or ter Braak suggested using 1e-4.  My experience is 1e-3
-//' is OK, haven't had too much experience using 1e-4.  
+//' distribution that derives epsilon. This is set at 1e-3.
 //' @return a column vector
-//' @references Ter Braak, C. J. F. (2006). A Markov Chain Monte Carlo version 
-//' of the genetic algorithm Differerntial Evolution: easy Bayesian computing
-//' for real parameter spaces. 
+//' @references ter Braak, C. J. F. (2006). A Markov Chain Monte Carlo version 
+//' of the genetic algorithm Differerntial Evolution: Easy Bayesian computing
+//' for real parameter spaces. Statistics and Computing, 16, 239–249. \cr\cr
+//' Hu, B., & Tsui, K.-W. (2005). Distributed evolutionary Monte Carlo with 
+//' applications to Bayesian analysis Technical Report Number 1112.
+//' @export
 //' @examples
-//' pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51,  
-//'           muw2=3.69, t_delay=0.31, sv=1, swt=0.5)
-//' setting  <- c(bandwidth=.02, ns=1e4, nmc=6, nchain=24, rp=.001, burnin=10,
-//'               nthin=3, start=1, gammaMult=2.38, report=20)
-//' samples  <- init(pVec, setting)
-//' useTheta <- samples$theta[,,1]
-//' dim(useTheta)  ## 10 x 24; npar x nchain
+//' init <- function(nc, npar) {
+//'   theta0  <- array(dim = c(nc, npar))  
+//'   theta0[,2] <- runif(nc, 0, 10);   # b
+//'   theta0[,1] <- runif(nc, 0, theta0[,2]); # A
+//'   theta0[,3] <- runif(nc, 0, 7);   # v1
+//'   theta0[,4] <- runif(nc, 0, 7);   # v2
+//'   theta0[,5] <- runif(nc, 0, .5)   # t0           
+//'   return(theta0)
+//' }
 //' 
-//' gamma <- gammaVec(length(pVec), setting[9])
-//' 
+//' npar <- 5 
+//' nc   <- npar * 1 
+//' theta0  <- init(nc, npar)
+//' gamma <- cpda::gammavec(npar, 2.38)
+//'   
 //' ## Current chain index is 0 (C-based index)
-//' crossover(useTheta, gamma, 0, 1e-4)
+//' crossover(theta0, gamma, 0)
+//' crossover(theta0, gamma, 1)
+//' crossover(theta0, gamma, 2)
+//' crossover(theta0, gamma, 3)
+//' crossover(theta0, gamma, 4)
 //' 
-arma::vec crossover(arma::mat useTheta, arma::vec gamma, int k, double rp) {
-  int npar   = useTheta.n_rows ;   // useTheta is npar x nchain; 
-  int nchain = useTheta.n_cols;
+//' migration(theta0, gamma, 4)
+//' get_subchains(nc)
+//' 
+// [[Rcpp::export]]
+arma::mat crossover(arma::mat theta, double gammamult=2.38, double rp=0.001) {
+  arma::mat theta0 = arma::trans(theta);              // theta:  nc x npar
+  int npar=theta0.n_rows, nchain=theta0.n_cols; // theta0: npar x nc
+  arma::vec tune = gammavec(npar, gammamult);
+  arma::mat out(npar, nchain); out.fill(NA_REAL);
   std::vector<int> chains = shuffle(nchain) ; // make sure x_R0 is also random
-  arma::vec subchains = pickchains(k, 2, chains);
-  // For the sake of detail balance, use k instead of subchains[0] 
-  // Scheme DE1, (Storn and Price, 1995); DEMC veci/x_i (ter Braak, 2006)
-  arma::vec vk = useTheta.col(k); 
-  arma::vec v1 = useTheta.col(subchains[0]); // DEMC vec1/x_R1
-  arma::vec v2 = useTheta.col(subchains[1]); // DEMC vec2/x_R2
-  arma::vec epsilon = rp * (arma::randu(npar) - .5);
-  arma::vec proposal = vk + gamma % (v1 - v2) + epsilon; // x_p
-  return proposal;
+  arma::vec subchains;
+
+  for(int k=0; k<nchain; k++)
+  {
+    subchains = pickchains(k, 2, chains);
+    out.col(k) = theta0.col(k) + tune % (theta0.col(subchains[0]) -
+      theta0.col(subchains[1])) + (2*rp * (arma::randu(npar) - rp));
+  }
+  return arma::trans(out);
 }
 
-//' Initialise a pLBA Bayeisan Sample
-//'
-//' This functions initialises a pLBA sample. The function is imcompleted. 
-//' The user should not use.  
-//'
-//' @param pVec a vector storing pLBA model parameters. The sequence is 
-//' critical. It is, A, b, muv1, muv2, t_ND, muw1, muw2, t_delay, sv, swt. 
-//' @param setting DE and MC setting, including, nmc, nchain, etc.
-//' @keywords initialize_structures
-//' @return a list with 7 elements: param_old, param_chain, proposal, direction,
-//' LL_keep, nmc, and nchain
-//' @examples
-//' pVec <- c(A=1.51, b=2.7, muv1=3.32, muv2=2.24, t_ND=0.08, muw1=1.51,  
-//'           muw2=3.69, t_delay=0.31,  sv=1, swt=0.5)
-//' 
-//' ## Setting sequence is critical, too! 
-//' setting <- c(bandwidth=.02, ns=1e5, nmc=30, nchain=24, rp=.001, burnin=10,
-//' nthin=3, start=1, gammaMult=2.38, report=100)
-//' tmp0 <- init(pVec, setting)
-//' str(tmp0)
-//' ## List of 5
-//' ## $ opVec    : num [1:10, 1:24] -1.749 3.207 2.432 4.913 0.391 ...
-//' ## $ theta    : num [1:10, 1:24, 1:30] -1.749 3.207 2.432 4.913 0.391 ...
-//' ## $ prospoal : num [1:10, 1:24] NA NA NA NA NA NA NA NA NA NA ...
-//' ## $ direction: num [1:10, 1:24] NA NA NA NA NA NA NA NA NA NA ...
-//' ## $ LL_keep  : num [1:30, 1:24] NA NA NA NA NA NA NA NA NA NA ...
-//' 
-Rcpp::List init(arma::vec pVec, arma::vec setting)
-{
-  // A  b muv1  muv2  t_ND  muw1  muw2 t_delay  sv  swt
-  // 0  1    2     3     4     5     6       7   8    9  
-  // block_1 = c(0, 1, 2, 3, 4); ## A, b, muv1, muv2, t_ND
-  // block_2 = c(5, 6, 7);       ## muw1, muw2, t_delay
-  
-  // h ns nmc nchain rp burnin nthin start gammaMult report
-  // 0  1   2      3  4      5     6     7         8      9
-  int npar   = pVec.n_elem; 
-  int nchain = setting[3];
-  int nmc    = setting[2]; // dmc uses nchain x npar x nmc
-  
-  arma::mat opVec_(nchain, npar); opVec_.fill(NA_REAL);
-  opVec_.col(1)  = 5 * arma::randu(nchain);   // b
-  opVec_.col(0)  = opVec_.col(1) % arma::randn(nchain) ;  // A
-  opVec_.col(2)  = 5*arma::randu(nchain) ;  // muv1
-  opVec_.col(5)  = 5*arma::randu(nchain) ;  // muw1
-  opVec_.col(3)  = 5*arma::randu(nchain) ;  // muv2
-  opVec_.col(6)  = 5*arma::randu(nchain) ;  // muw2
-  opVec_.col(7)  = .5*arma::randu(nchain) ; // t_Delay
-  opVec_.col(4)  = .5*arma::randu(nchain) ; // t_ND
-  opVec_.col(8)  = arma::repmat(pVec.row(8), nchain, 1); // sv
-  opVec_.col(9)  = arma::repmat(pVec.row(9), nchain, 1); // swt
-  
-  
-  // Initialise the 1st theta; rprior
-  arma::cube theta(npar, nchain, nmc); // param_chain (nmc x npar x nchain); 
-  arma::mat theta_(npar, nchain);      // temporarily store 1st slice
-  theta.fill(NA_REAL);     // Populate first value of the chain with initial guess
-  theta_.row(1)  = opVec_.col(1).t(); // b
-  theta_.row(0)  = opVec_.col(0).t(); // A
-  theta_.row(2)  = opVec_.col(2).t(); // muv1
-  theta_.row(5)  = opVec_.col(5).t(); // muw1
-  theta_.row(3)  = opVec_.col(3).t(); // muv2
-  theta_.row(6)  = opVec_.col(6).t(); // muw2
-  theta_.row(7)  = opVec_.col(7).t(); // t_Delay
-  theta_.row(4)  = opVec_.col(4).t(); // t_ND
-  theta_.row(8)  = opVec_.col(8).t(); // sv
-  theta_.row(9)  = opVec_.col(9).t(); // swt
-  theta.slice(0) = theta_;
-  arma::mat opVec = opVec_.t(); // back to npar x nchain
-  
-  arma::mat proposal(npar, nchain);
-  arma::mat direction(npar, nchain);
-  arma::mat LL_keep(nmc, nchain);      
-  proposal.fill(NA_REAL);
-  direction.fill(NA_REAL);
-  LL_keep.fill(NA_REAL);
-  
-  Rcpp::List out = Rcpp::List::create(
-    Rcpp::Named("opVec")     = opVec,
-    Rcpp::Named("theta")     = theta,
-    Rcpp::Named("prospoal")  = proposal,
-    Rcpp::Named("direction") = direction,
-    Rcpp::Named("LL_keep")   = LL_keep) ;
-  
+
+//' @rdname crossover
+//' @export
+// [[Rcpp::export]]
+arma::vec getsubchains (int nchain) {
+  // Migration algroithm - two-step shuffling
+  // First shuffle decides how many chains (n) to process 
+  // Second shuffle decides a subset of n chain(s) 
+  arma::vec chainsSeq1 = arma::conv_to<arma::colvec>::from(shuffle(nchain));
+  arma::vec chainsSeq2 = arma::conv_to<arma::colvec>::from(shuffle(nchain));
+  arma::vec subchains  = chainsSeq2.rows(0, chainsSeq1[0]-1);
+  return arma::sort(subchains) ;
+} 
+
+
+//' @rdname crossover
+//' @export
+// [[Rcpp::export]]
+arma::mat migration(arma::mat theta, double gammamult=2.38, double rp=0.001) {
+  arma::mat theta0 = arma::trans(theta);              // theta:  nc x npar
+  int npar=theta0.n_rows, nchain=theta0.n_cols; // theta0: npar x nc  
+  arma::vec tune = gammavec(npar, gammamult);
+  arma::mat out(npar, nchain); out.fill(NA_REAL);   
+
+  // Step 1: select a number l uniformly from 1 and k to be the number of 
+  // subpopulations for migration
+  arma::vec subchains = getsubchains(nchain);   
+  // Connect the last number to the first number to be the migration direction
+
   return out;
 }
 
+
+/*
+arma::mat migrate_primitive(arma::mat& useTheta,
+  arma::vec& useLogPrior, arma::vec& useLogLike,
+  Rcpp::List& pPrior, Rcpp::List& data, double rp) {
+  int nChains = useTheta.n_rows ;
+  int npars   = useTheta.n_cols ;
+  std::vector<int> subchains    = get_subchains(nChains) ; // C index
+  int nSubchains                = subchains.size() ;
+  
+  arma::mat thetaSet(nSubchains, npars) ;
+  arma::vec currentLogPrior(nSubchains) ;
+  arma::vec proposeLogPrior(nSubchains) ;
+  arma::vec currentLogLike(nSubchains) ;
+  arma::vec proposeLogLike(nSubchains) ;
+  
+  arma::vec currwLogLike(nSubchains) ;
+  arma::vec propwLogLike(nSubchains) ;
+  arma::vec currwLogPrior(nSubchains) ;
+  arma::vec propwLogPrior(nSubchains) ;
+  
+  Rcpp::NumericVector model       = data.attr("model") ;
+  Rcpp::NumericVector pVecNA      = model.attr("p.vector") ;
+  thetaSet.fill(NA_REAL) ;
+  
+  for(int i=0; i<nSubchains; i++)
+  {
+    arma::rowvec perturbation  = Rcpp::runif(npars, -rp, rp) ;
+    // create a set of particles to swap
+    int ii              = subchains[i] ; // ii is non-continuous chain index
+    thetaSet.row(i)     = useTheta.row(ii) + perturbation ;
+    currentLogPrior(i)  = useLogPrior(ii) ; // nChains x 1
+    currentLogLike(i)   = useLogLike(ii) ;
+    arma::vec pVec      = vectorise(thetaSet.row(i)) ; // Proposed new prior
+    proposeLogPrior(i)  = summed_log_prior(pVec, pPrior) ;
+    proposeLogLike(i)   = summed_log_likelihood(pVec, data) ;
+    
+    propwLogPrior(i) = proposeLogPrior(i) ;
+    propwLogLike(i)  = proposeLogLike(i) ;
+    
+    currwLogPrior(i) = currentLogPrior(i) ;
+    currwLogLike(i)  = currentLogLike(i) ;
+  }
+  
+  // ppLogLike stands for "proposed posterior log likelihood".
+  // cpLogLike stands for "current  posterior log likelihood". 
+  double ppLogLike = proposeLogLike(nSubchains-1) + proposeLogPrior(nSubchains-1) ;
+  double cpLogLike = currentLogLike(0) + currentLogPrior(0) ;
+  if (std::isnan(ppLogLike)) { ppLogLike = -INFINITY ; }
+  double rho = exp(ppLogLike - cpLogLike) ;
+  
+  if (rho > Rf_runif(0, 1)) {
+    useTheta.row(subchains[0]) = thetaSet.row(nSubchains-1) ;
+    useLogPrior(subchains[0])  = proposeLogPrior(nSubchains-1) ;
+    useLogLike(subchains[0])   = proposeLogLike(nSubchains-1) ;
+  }
+  
+  if ( nSubchains != 1 ) {
+    for(int k=0; k<(nSubchains-2); k++)  // i & j were used before
+    {
+      // If the current selected chain is more probable than its follower,
+      // replace its follower with the current chain.
+      double ppLogLike = proposeLogLike(k) + proposeLogPrior(k) ;
+      double cpLogLike = currentLogLike(k+1) + currentLogPrior(k+1) ;
+      if (std::isnan(ppLogLike)) { ppLogLike = -INFINITY ; }
+      double rho = exp (ppLogLike - cpLogLike) ;
+      
+      if ( rho > Rf_runif(0, 1) )
+      {
+        useTheta.row(subchains[k+1]) = thetaSet.row(k) ;
+        useLogPrior(subchains[k+1])  = proposeLogPrior(k) ;
+        useLogLike(subchains[k+1])   = proposeLogLike(k) ;
+      }
+    }
+  }
+  
+  arma::mat out (nChains, 2+npars);
+  out.col(0) = useLogPrior ;
+  out.col(1) = useLogLike ;
+  out.cols(2, 1+npars) = useTheta ;
+  
+  return out ;
+} ;
+
+*/

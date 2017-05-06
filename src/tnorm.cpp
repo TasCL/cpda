@@ -52,6 +52,7 @@ inline double alg1(const double lower, const double upper)
     z = Rf_rnorm(0.0, 1.0) ;
     if (z <= upper && z >= lower) { valid = 1 ; }
   }
+  //std::cout << "leave alg1\n";
   return z ;
 }
 
@@ -73,6 +74,7 @@ inline double alg2(const double lower, const double upper)
     rho = exp(-pow(z - alphaStar, 2) / 2) ;
     if (u <= rho && z <= upper) { valid = 1 ; } // Keep Successes
   }
+  //std::cout << "leave alg2\n";
   return z ;
 }
 
@@ -149,7 +151,7 @@ double rtn_scalar(const double mean,  const double sd, const double lower,
     (stdLower == -INFINITY  && stdUpper > 0) ||
     (std::isfinite(stdLower) && std::isfinite(stdUpper) &&
     (stdLower < 0) && (stdUpper > 0) &&
-    (stdUpper - stdLower > sqrt(2*PI))) ;
+    (stdUpper - stdLower) > sqrt(2*PI)) ;
 
   // CJ's 1
   double term1_a2 = stdLower ;
@@ -188,6 +190,16 @@ double rtn_scalar(const double mean,  const double sd, const double lower,
   double out = draw * sd + mean ;
   return out ;
 }
+
+//' @export
+// [[Rcpp::export]]
+arma::vec rtn_arma(int n, const double mean,  const double sd, const double lower,
+  const double upper) {
+  arma::vec out(n);
+  for(int i=0; i<n; i++) { out[i] = rtn_scalar(mean, sd, lower, upper); }
+  return out;
+}
+
 
 double dtn_scalar(const double x, const double mean, const double sd,
   const double lower, const double upper, int islog)

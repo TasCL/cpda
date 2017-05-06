@@ -1,22 +1,24 @@
 Package: cpda
 Type: Package
 Title: Probability Density Approximation
-Version: 0.0.1.5
+Version: 0.1.1
 Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
                     role = c("aut", "cre")),
   person("Andrew", "Heathcote", email = "andrew.heathcote@utas.edu.au", 
   role = "aut"),
   person("William", "Holmes", email = "william.holmes@vanderbilt.edu", 
   role = "aut"))
-Depends: R (>= 3.0.2)
+Depends:
+    R (>= 3.0.2)
 Description: An implementation of fast computaton of probability density
-  approximation (PDA).
+    approximation (PDA) and stand-alone DE-MC crossover sampler.
 License: GPL-2
 Author: Yi-Shin Lin [aut, cre], Andrew Heathcote [aut], William Holmes [aut]
 Maintainer: Yi-Shin Lin <yishin.lin@utas.edu.au>
-Date/Publication: 2016-11-10 15:45:30
+Date/Publication: 2017-04-24 12:32:30
 LazeData: TRUE
-Imports: Rcpp (>= 0.12.3)
+Imports:
+    Rcpp (>= 0.12.3)
 LinkingTo: Rcpp (>= 0.12.3), RcppArmadillo (>= 0.6.700.6.0)
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 NeedsCompilation: yes
