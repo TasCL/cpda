@@ -1,5 +1,4 @@
-#include <cpda/lba.hpp>
-#include <cpda/logLik.hpp>
-#include <cpda/tnorm.hpp>
 #include <cpda/util.hpp>
+#include <cpda/density.hpp>
 #include <cpda/demc.hpp>
+#include <cpda/random.hpp>
