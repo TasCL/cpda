@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{getEdges}
 \alias{getEdges}
-\title{Calculate edges for simulated histogram}
+\title{Calculate Histogram Edges}
 \usage{
 getEdges(z)
 }
@@ -12,4 +12,29 @@ getEdges(z)
 }
 \description{
 This is an internal function. The user may not use it.
+}
+\examples{
+set.seed(123)
+dat1 <- stats::rnorm(1e2)
+h  <- bw.nrd0(dat1)
+z0 <- min(dat1) - 3*h 
+z1 <- max(dat1) + 3*h
+ngrid <- 2^10
+dt <- (z1 - z0) / (ngrid - 1)
+z  <- z0 + (0:(ngrid-1)) * dt
+## Same as using seq function
+## seq(z0, z1, length.out=ngrid)
+
+binedge1 <- c(z - 0.5*dt, z[ngrid] + 0.5*dt)
+binedge2 <- as.vector(cpda::getEdges(z))
+all.equal(binedge1, binedge2)
+mean(binedge - as.vector(tmp))
+## [1] 2.640334e-17
+
+## 4.00 vs. 14.1 microseconds
+## library(microbenchmark)
+## res <- microbenchmark(
+##    binedge1 <- c(z - 0.5*dt, z[ngrid] + 0.5*dt),
+##    binedge2 <- as.vector(cpda::getEdges(z)),
+##   times=10L)
 }

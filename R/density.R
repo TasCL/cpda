@@ -1,0 +1,117 @@
+#' Compute Likelihood, using FFT method
+#' 
+#' \code{lik_fft2} uses an identical algorithm as \code{logLik_fft}, but
+#' return a matrix. Differing from \code{lik_pw}, \code{lik_fft2}
+#' and \code{logLik_fft},
+#' \enumerate{
+#' \item takes Monte Carlo simulations,
+#' \item transforms them to spectral domain using FFT,
+#' \item applies a standard Gaussian kernel to smooth them,
+#' \item transforms them back to signal domain and
+#' \item interpolates linearly the simulation histogram to the observation 
+#' to obtain estimated likelihoods.
+#' }
+#' 
+#' @param y a vector storing empirical data.
+#' @param x a vector storing simulated data (e.g., \code{rnorm(100)}).
+#' @param h the bandwidth for kernel density estimation. If not given,
+#' Sliverman's rule of thumb will be used.
+#' @param m a multiplier to adjust \code{h} proportationally. Default is 0.8.
+#' @param p a precision parameter defines the number of grid as power of 2.
+#' Default value is 10 (i.e., 2^10).
+#' @param n the numbers of simulation. When n=0, where the function will count
+#' the numbers of observation in the simulated histogram. If simulating 
+#' a defective distribution, one should always enter the simulation numbers. 
+#' @param pw whether to calculate gaussian kernel directly or using FFT 
+#' algorithm
+#' @return A vector.
+#' @references Holmes, W. (2015). A practical guide to the Probability Density
+#' Approximation (PDA) with improved implementation and error characterization.
+#' \emph{Journal of Mathematical Psychology}, \bold{68-69}, 13--24,
+#' doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
+#' @seealso
+#' \code{\link{logLik_pw}}, \code{\link{logLik_fft}},
+#' \code{\link{bw.nrd}}, \code{\link{bandwidth.nrd}}.
+#' @examples
+#' ###################
+##' ## Example 1     ##
+#' ###################
+#' x   <- seq(-3, 3, length.out=100) ## Data
+#' sam <- rnorm(1e5)              ## Monte Carlo simulation
+#' xlabel <- "Observations"
+#' ylabel <- "Density"
+#'
+#' sam  <- rnorm(n)
+#' den1 <- dnorm(x)
+#' den2 <- likelihood(x, sam, pw=TRUE)
+#' den3 <- likelihood(x, sam, pw=FALSE)
+#'
+#' par(mar=c(4, 5.3, 0.82, 1))
+#' plot(x, den1, type="l", lty="dotted", xlab=xlabel, ylab=ylabel, cex.lab=3,
+#'      cex.axis=1.5, lwd=3)
+#' 
+#' lines(x, den2, col="blue", lty="dashed", lwd=2)
+#' lines(x, den3, col="red", lwd=2)
+#' 
+#' ## Define bandwidth using bw.nrd0
+#' bandwidth <- 0.8*bw.nrd0(sam)          
+#' den1 <- likelihood(x, sam, h=bandwidth, pw=TRUE)
+#' den2 <- likelihood(x, sam, h=bandwidth, pw=FALSE)
+#' 
+#' plot(x, den1, type="l", lty="dotted", xlab=xlabel, ylab=ylabel, cex.lab=3,
+#'      cex.axis=1.5, lwd=3)
+#' lines(x, den2, col="blue", lty="dashed", lwd=2)
+#' lines(x, den3, col="red", lwd=2)
+#' 
+#' 
+#' ###################
+#' ## Example 2     ##
+#' ###################
+#' rm(list=ls())
+#' ## Assuming that this is empirical data
+#' y <- rtdists::rLBA(1e3, A=.5, b=1, t0=.25, mean_v=c(2.4, 1.2), sd_v=c(1,1))
+#' rt1  <- y[y$response==1,"rt"]
+#' rt2  <- y[y$response==2,"rt"]
+#' srt1 <- sort(rt1)
+#' srt2 <- sort(rt2)
+#' 
+#' xlabel <- "RT"; ylabel <- "Density"
+#' par(mfrow=c(1,2))
+#' hist(rt1, "fd", freq=F, xlim=c(0.1,1.5), main="Choice 1", 
+#'     xlab=xlabel, ylab=ylabel)
+#' hist(rt2, "fd", freq=F, xlim=c(0.1,1.5), main="Choice 2",
+#'     xlab=xlabel, ylab=ylabel)
+#' par(mfrow=c(1,1))
+#' 
+#' ## Now draw simulations from another rLBA
+#' n <- 1e5
+#' samp <- rtdists::rLBA(n, A=.5, b=1, t0=.25, mean_v=c(2.4, 1.2), sd_v=c(1,1))
+#' samp1 <- samp[samp[,2]==1, 1]
+#' samp2 <- samp[samp[,2]==2, 1]
+#' fft1  <- likelihood(srt1, samp1, n=n)  
+#' fft2  <- likelihood(srt2, samp2, n=n)
+#' 
+#' ## Calculate theoretical densities
+#' den0 <- rtdists::dLBA(y$rt, y$response, A=.5, b=1, t0=.25, 
+#'    mean_v=c(2.4, 1.2), sd_v=c(1, 1))
+#'    
+#' df0 <- cbind(y, den0)
+#' df1 <- df0[df0[,2]==1,]
+#' df2 <- df0[df0[,2]==2,]
+#' den1 <- df1[order(df1[,1]),3]
+#' den2 <- df2[order(df2[,1]),3]
+#' plot(srt1,  den0, type="l")
+#' lines(srt2, den1)
+#' lines(srt1, fft1, col="red")
+#' lines(srt2, fft2, col="red")
+#' @export
+likelihood <- function(x, y, h=0, m=.8, p=10, n=0, pw=FALSE) {
+  if (pw) {
+    out <- as.vector(lik_pw(x, y, h, m, n))
+  } else {
+    out <- as.vector(lik_fft(x, y, h, m, p, n))
+  }
+  return(out)
+}
+
+

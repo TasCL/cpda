@@ -21,7 +21,8 @@
 //' for element-wise compuation in Armadillo C++.
 //' 
 //' @param npar number of parameters. 
-//' @param gammamult a tuning parameter for gamma mutation. Default value is 2.38.
+//' @param gammamult a tuning parameter for gamma mutation. Default value is 
+//' 2.38.
 //' @return a column vector
 //' @export
 //' @examples

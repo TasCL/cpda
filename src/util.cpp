@@ -1,13 +1,6 @@
 #include <cpda.hpp>
 #include <random>
 
-// Protect against compilers without OpenMP; e.g., OS X  clang
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-//' @export
-// [[Rcpp::export]]
 arma::vec pmax(arma::vec v, double min) {
   for (arma::vec::iterator it=v.begin(); it!=v.end(); it++)
   {
@@ -107,5 +100,70 @@ arma::vec histd(arma::vec yhat, arma::vec z, int n) {
   pdf = bc / unitVec;
   out = pdf.rows(0, pdf.size()-2); // 0 to 1023
   return out;
+}
+
+//' Calculate Histogram Edges 
+//'
+//' This is an internal function. The user may not use it.
+//' 
+//' @param z a grid a scalar, usually created by 
+//' \code{z = arma::linspace<arma::vec>(z0, z1, 1<<(int)p);}
+//' 
+//' @examples
+//' set.seed(123)
+//' dat1 <- stats::rnorm(1e2)
+//' h  <- bw.nrd0(dat1)
+//' z0 <- min(dat1) - 3*h 
+//' z1 <- max(dat1) + 3*h
+//' ngrid <- 2^10
+//' dt <- (z1 - z0) / (ngrid - 1)
+//' z  <- z0 + (0:(ngrid-1)) * dt
+//' ## Same as using seq function
+//' ## seq(z0, z1, length.out=ngrid)
+//' 
+//' binedge1 <- c(z - 0.5*dt, z[ngrid] + 0.5*dt)
+//' binedge2 <- as.vector(cpda::getEdges(z))
+//' all.equal(binedge1, binedge2)
+//' mean(binedge - as.vector(tmp))
+//' ## [1] 2.640334e-17
+//' 
+//' ## 4.00 vs. 14.1 microseconds
+//' ## library(microbenchmark)
+//' ## res <- microbenchmark(
+//' ##    binedge1 <- c(z - 0.5*dt, z[ngrid] + 0.5*dt),
+//' ##    binedge2 <- as.vector(cpda::getEdges(z)),
+//' ##   times=10L)
+//' @export
+// [[Rcpp::export]]
+arma::vec getEdges(arma::vec z) {
+  double halfdt = (z[1] - z[0])/2;   
+  arma::vec dtVec(z.n_elem);
+  dtVec.fill(halfdt);
+  arma::vec term1 = z - dtVec;
+  arma::vec term2(1);
+  double last     = z[z.n_elem - 1] + halfdt;
+  term2.fill(last);
+  return arma::join_cols(term1, term2) ;
+}
+
+//' @export
+// [[Rcpp::export]]
+arma::vec getFilter(double m, double M, double h, double p) {
+  // See gaussian filter equation in https://en.wikipedia.org/wiki/Gaussian_filter
+  double N_grid  = std::pow(2.0, p);
+  double tmp0    = arma::datum::pi * N_grid/(M-m) ;
+  arma::vec tmp1 = arma::linspace<arma::vec>(0, 1, 1 + N_grid/2) ;
+  
+  arma::vec tmp0Vec(tmp1.n_elem);
+  tmp0Vec.fill(tmp0);
+  arma::vec freq = tmp0Vec % tmp1 ;
+  arma::vec freq2= arma::pow(freq, 2.0) ; // s^2 on p17
+  
+  double h2      = std::pow(h, 2.0) ;
+  arma::vec fil0 = arma::exp(-0.5 * h2 * freq2) ;
+  arma::vec fil1 = arma::flipud(fil0.rows(1, (fil0.size() - 2)));
+  
+  arma::vec out  = arma::join_cols(fil0, fil1) ;
+  return out ;
 }
 

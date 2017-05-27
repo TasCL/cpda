@@ -4,7 +4,7 @@
 \alias{lik_pw}
 \title{Point-wise Probability Density Approximation}
 \usage{
-lik_pw(y, yhat, h = 0, m = 0.8, n = 0L, parallel = 0L)
+lik_pw(y, yhat, h = 0, m = 0.8, n = 0L)
 }
 \arguments{
 \item{y}{a vector storing empirical observations (e.g., RTs).}

@@ -9,7 +9,8 @@ gammavec(npar, gammamult = 2.38)
 \arguments{
 \item{npar}{number of parameters.}
 
-\item{gammamult}{a tuning parameter for gamma mutation. Default value is 2.38.}
+\item{gammamult}{a tuning parameter for gamma mutation. Default value is 
+2.38.}
 }
 \value{
 a column vector
