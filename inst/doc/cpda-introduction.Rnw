@@ -5,8 +5,8 @@
 \SweaveOpts{concordance=FALSE}
 
 \author{Yi-Shin Lin\\University of Tasmania \And
-Andrew Heathcote\\University of Tasmania \And
-William R. Holmes\\Vanderbilt University}
+William R. Holmes\\Vanderbilt University \And
+Andrew Heathcote\\University of Tasmania}
 \Plainauthor{Yi-Shin Lin, Andrew Heathcote, William Holmes}
 
 \title{\proglang{cpda} and \proglang{gpda}: Efficient Computation for
@@ -15,24 +15,21 @@ Probability Density Approximation}
 of Probability Density Approximation}
 
 \Abstract{
-  Probability density approximation (PDA) efficiently calculates
-  likelihood even when their analytic functions are unavailable.  It
-  allows researchers to model compuationally complex biological processes,
-  which in the past could only be approached by overly simplified
-  models. It is however computationally demanding.  We implement two
-  \proglang{R} packges, \pkg{cpda} and \pkg{gpda}, using
-  \proglang{Armadillo C++}
-  and \proglang{CUDA C} to provide a practical and efficient solution
-  for Bayesian computation of cognitive models. Both packages
+  Probability density approximation (PDA) calculates likelihood even when 
+  their analytic functions are unavailable.  It allows researchers to model
+  computationally complex biological processes, which in the past could only be
+  approached by overly simplified models. PDA is however computationally
+  demanding.  To attain high precision, PDA calculation requires a large number of Monte Carlo simulations
+  to approximate true likelihood.
+  We implement an \proglang{R} packge, \pkg{gpda}, using \proglang{Armadillo C++}
+  and \proglang{CUDA} libraries to provide a practical and efficient solution
+  for Bayesian computation of cognitive models. This package
   harness the multi-thread nature of modern computational processing units,
-  enabling parallel computations with a dozens of cores of central processing
-  unit (CPU) and thoudands threads of graphics processing unit (GPU).
-  \pkg{cpda}
-  resolves the bottleneck when few fast CPU cores are efficient to find
-  optimal solutions, such running multiple Markov chains in parallel, whereas
-  \pkg{gpda} reduces the computation times when large numbers (>1e5) of Monte
-  Carlo simulations is required to approximate probability densities. We 
-  conclude with three practical exmaples as a road map for the application in 
+  enabling parallel computations with thoudands threads using graphics
+  processing unit (GPU). \pkg{gpda} reduces the computation times that involve
+  large numbers (>1e6) of Monte Carlo simulations. This solution allows  is
+  required to approximate probability densities. We
+  conclude with three practical exmaples as a road map for the application in
   cognitive models.
 }
 
@@ -90,7 +87,7 @@ now.date <- strftime(Sys.Date(), "%B %d, %Y")
 \label{sec:intro}
 Simulation-based algorithms recently find a new
 application in finding likelihood functions \citep{sisson_likelihood_2010}.
-This application is especially useful when specifying a likelihood function 
+This application is especially useful when specifying a likelihood function
 analytically is unlikely or
 when evaluating it is computationally prohibitive, a situation
 arises sometimes in cognitive and often in neuro-cognitive models. These
@@ -282,9 +279,9 @@ regression model, $ y = ax + b + \epsilon $. This is the case where the
 parameters for each data point differ.
 
 Because each data point is sampled from a Gaussian distribution
-with a different mean, we need to conduct simulations separately for each of 
-them. We can use R's sapply function or even better C++ iterator to speed up 
-the compuation. To make code more readable, we wrote it in a simple for loop 
+with a different mean, we need to conduct simulations separately for each of
+them. We can use R's sapply function or even better C++ iterator to speed up
+the compuation. To make code more readable, we wrote it in a simple for loop
 here.
 
 %
@@ -350,7 +347,7 @@ response time and a choice (e.g., choice 1 made by .800 second).
 ## https://cran.r-project.org/web/packages/rtdists/index.html
 y <- rtdists::rLBA(1e3, A=.5, b=1, t0=.25, mean_v=c(2.4, 1.2), sd_v=c(1, 0.6))
 y1 <- sort(y[y$response==1, "rt"]) ## rt1
-y2 <- sort(y[y$response==2, "rt"]) ## rt2  
+y2 <- sort(y[y$response==2, "rt"]) ## rt2
 \end{Code}
 %
 
@@ -360,7 +357,7 @@ infrequent. Because the analytic LBA PDF is known, we can calculate it directly
 using the equation provided in \citep{brown_simplest_2008}.
 
 \begin{Code}
-den0 <- rtdists::dLBA(y$rt, y$response, A=.5, b=1, t0=.25, mean_v=c(2.4, 1.2), 
+den0 <- rtdists::dLBA(y$rt, y$response, A=.5, b=1, t0=.25, mean_v=c(2.4, 1.2),
   sd_v=c(1, .6))
 df0  <- cbind(y, den0)
 df1  <- df0[df0[,2]==1,]
@@ -398,7 +395,7 @@ to conduct Monte Carlo simulations of LBA model without knowing its PDF.
 
 \begin{Code}
 n    <- 1e5          ## the size of simulated sample
-pVec <- c(A1=1, A2=1, b1=.5, b2=.5, v1=2.4, v2=1.2, sv1=1, sv2=.6, 
+pVec <- c(A1=1, A2=1, b1=.5, b2=.5, v1=2.4, v2=1.2, sv1=1, sv2=.6,
           t01=.25, t02=.25)
 
 ## Monte Carlo simulations for choice 1 and 2
@@ -406,8 +403,8 @@ samp  <- cpda::rlba(n, pVec)
 samp1 <- samp[samp[,2]==1, 1]
 samp2 <- samp[samp[,2]==2, 1]
 
-## Use R-PDA to estimate densities. Because each choice is defective,  
-## the user needs to indicate the total number of simulated samples. 
+## Use R-PDA to estimate densities. Because each choice is defective,
+## the user needs to indicate the total number of simulated samples.
 system.time(fft1 <- cpda::logLik_fft2(y1, samp1, n=n))
 system.time(fft2 <- cpda::logLik_fft2(y2, samp2, n=n))
 
@@ -433,7 +430,7 @@ xlabel <- "RT (s)"
 ylabel <- "Density"
 
 par(mar=c(4,5.3,0.82,1))
-plot(y1, exp(fft1[,2]), type="l", xlab=xlabel, ylab=ylabel, cex.lab=3, 
+plot(y1, exp(fft1[,2]), type="l", xlab=xlabel, ylab=ylabel, cex.lab=3,
      cex.axis=1.5, lwd=2)
 lines(y2, exp(fft2[,2]), lwd=2)
 lines(y1, exp(fft3), lty="longdash", lwd=2)
@@ -450,7 +447,7 @@ dev.off()
 \end{Code}
 %
 
-SPDFs for choice 1 and choice 2 are almost indistinguishable from the analytic 
+SPDFs for choice 1 and choice 2 are almost indistinguishable from the analytic
 PDF (Figure \ref{fig:lba-pda}).
 
 
@@ -489,7 +486,7 @@ In a standard Bayesian inference, one first proposes a set of
 parameters, often denoted $\theta^{*}$. There are a number of ways to propose parameters. A
 traditional method is to sample from a jumping distribution
 \citep{gelman_bayesian_2014}, but other elaborated methods are also available, such as
-No-U-turn sampler \citep{hoffman2014_nut} and DE-MCMC sampler 
+No-U-turn sampler \citep{hoffman2014_nut} and DE-MCMC sampler
 \citep{Braak2006,Turner2013}.  Together with an
 empirical data set, one can derive a posterior probability density based on
 proposal parameters simply by calculating the right hand side of the equation
@@ -530,15 +527,15 @@ K_h(z) = \frac{1}{h}K(\frac{z}{h})
 $z$ is the discrepancy between an empirical datum and a simulate datum
 ($y-x_j$ in the following equation). $K$ is the kernel funciton. Replacing the
 smoothing kernel into equation \ref{eq:3}, we can then derive
-the equation of the weighting function mulitplying SPDF (namely, weighted SPDF): 
+the equation of the weighting function mulitplying SPDF (namely, weighted SPDF):
 
 \begin{equation} \label{eq:5}
 \hat{f}(x) = \frac{1}{N_s} \sum^{N_s}_{j=1} K_h (y-x_j)
 \end{equation}
 
 $N_s$ is the number of MC simulations, used to construct SPDF. $h$ is the
-bandwidth of the kernel. Bandwidth determines the degree to which one wishes 
-to smooth the kernel \citep{silverman_density_1986}. The larger the bandwidth, 
+bandwidth of the kernel. Bandwidth determines the degree to which one wishes
+to smooth the kernel \citep{silverman_density_1986}. The larger the bandwidth,
 the more smoothing is appled on simulated data.
 
 R-PDA harnesses the fact that the right hand side of equation \ref{eq:5}
@@ -561,74 +558,74 @@ approximated probability densities is:
 \end{equation}
 
 $\mathcal{F}$ and $\mathcal{F}^{-1}$ stand for fast-Fourier transformation
-(FFT) and inverse FFT operations. $\tilde{d}$ is SPDF.  Here, we use the 
-canonical Gaussian kernel, utilizing its nature that a Fourier transformed 
+(FFT) and inverse FFT operations. $\tilde{d}$ is SPDF.  Here, we use the
+canonical Gaussian kernel, utilizing its nature that a Fourier transformed
 Gaussian is another Gaussian \citep{holmes_practical_2015}.
 
 \section{Implementation}
 
-Both \pkg{cpda} and \pkg{gpda} were written in \proglang{C++}.  The latter 
-conducts FFT operations at the GPU by writing \code{logLik_fft} 
-function in \proglang{CUDA C}. Both packages implement three main functions 
-\code{logLik_pw}, \code{logLik_fft}, and \code{logLik_fft2} to calculate 
-model likelihood. The first function implements equation \ref{eq:5} and the 
-latter two implement equation \ref{eq:7}.  Although equation \ref{eq:7} is 
-faster than equation \ref{eq:5}, there are occassions, such as the regression 
-example in Section \ref{sec:intro}, when the likelihood for each observation is 
-based on MC simulations with their own parameter set.  
+Both \pkg{cpda} and \pkg{gpda} were written in \proglang{C++}.  The latter
+conducts FFT operations at the GPU by writing \code{logLik_fft}
+function in \proglang{CUDA C}. Both packages implement three main functions
+\code{logLik_pw}, \code{logLik_fft}, and \code{logLik_fft2} to calculate
+model likelihood. The first function implements equation \ref{eq:5} and the
+latter two implement equation \ref{eq:7}.  Although equation \ref{eq:7} is
+faster than equation \ref{eq:5}, there are occassions, such as the regression
+example in Section \ref{sec:intro}, when the likelihood for each observation is
+based on MC simulations with their own parameter set.
 
 The difference between \code{logLik_fft} and \code{logLik_fft2} is
-that the former returns a summed log-likelihood value, and the latter returns 
+that the former returns a summed log-likelihood value, and the latter returns
 a matrix with first column orderd observations and second column storing their
-log-likelihood values. 
+log-likelihood values.
 
 Specifically, \code{logLik_pw} takes five arguments:
 
 \begin{enumerate}
-\item \code{y}: a vector storing empirical observations 
+\item \code{y}: a vector storing empirical observations
 \item \code{yhat}: a vector storing simulations
-\item \code{h}: a scalar, indicating the kernel bandwidth. 
-\item \code{m}: a scalar, a multiplier to adjust bandwidth proportionally 
-\item \code{parallel}: a logical switch to run parallel computing with multiple 
-CPU cores. When the switch is on, \code{logLik_pw} distributes simulated 
-data to available CPU cores to calculate equation \ref{eq:4} in parallel. 
+\item \code{h}: a scalar, indicating the kernel bandwidth.
+\item \code{m}: a scalar, a multiplier to adjust bandwidth proportionally
+\item \code{parallel}: a logical switch to run parallel computing with multiple
+CPU cores. When the switch is on, \code{logLik_pw} distributes simulated
+data to available CPU cores to calculate equation \ref{eq:4} in parallel.
 \end{enumerate}
 
-\code{logLik_pw} returns logged likelihood for each observation corresponding 
-to the input vector, \code{y}.  
+\code{logLik_pw} returns logged likelihood for each observation corresponding
+to the input vector, \code{y}.
 
-Similarly, \code{logLik_fft} and \code{logLik_fft2} take also \code{y}, 
-\code{yhat}, \code{h} and \code{m} arguments. They take also three other 
-arguments: 
+Similarly, \code{logLik_fft} and \code{logLik_fft2} take also \code{y},
+\code{yhat}, \code{h} and \code{m} arguments. They take also three other
+arguments:
 
 \begin{enumerate}
-\item \code{p}: adjusting grid size for the SPDF as a power of 2. 
-\item \code{ns}: the number of simulated samples  
-\item \code{defected}: a boolean switch to use \code{ns} when approximating 
+\item \code{p}: adjusting grid size for the SPDF as a power of 2.
+\item \code{ns}: the number of simulated samples
+\item \code{defected}: a boolean switch to use \code{ns} when approximating
 defected densities.
 \end{enumerate}
 
 \section{A Real-world Example}
 \label{sec:rwexample}
 
-Piecewise linear ballistic accumulator model (PLBA) is a cognitive model, 
-accounting for the decision process when one evaluates changing information 
-pertinent to a decision.  For example, on a motor way, a motorist may want 
-to drive as fast as permited to save journey time, and also to maintain a 
-safe distance from its preceding vehicle.  In simple term, the relevant 
+Piecewise linear ballistic accumulator model (PLBA) is a cognitive model,
+accounting for the decision process when one evaluates changing information
+pertinent to a decision.  For example, on a motor way, a motorist may want
+to drive as fast as permited to save journey time, and also to maintain a
+safe distance from its preceding vehicle.  In simple term, the relevant
 information is the
 distance between the two vehicles, which influences the motorist's decision to
-accelerate or decelerate.  The relatively stable decision information may 
-abruptly change, when for example another vehicle switches lane and the 
-original information favoring accelerating suddenly becomes the other way 
+accelerate or decelerate.  The relatively stable decision information may
+abruptly change, when for example another vehicle switches lane and the
+original information favoring accelerating suddenly becomes the other way
 around.
 
-PLBA uses LBA model as a building block to account for this type of decision 
-making process.  Because of the abrupt information switching and unknown 
-cognitive processes that may happen during the switching, it is less 
-straighforward to derive an analytic likelihood function for PLBA.  We can, 
+PLBA uses LBA model as a building block to account for this type of decision
+making process.  Because of the abrupt information switching and unknown
+cognitive processes that may happen during the switching, it is less
+straighforward to derive an analytic likelihood function for PLBA.  We can,
 relatively speaking, easily derive its MC simulation process, which is
-implemented as \code{rplba} in \pkg{cpda}. 
+implemented as \code{rplba} in \pkg{cpda}.
 
 
 \subsection{Estimating piece-wise LBA via Bayesian Inference}

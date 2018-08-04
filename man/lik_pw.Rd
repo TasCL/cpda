@@ -4,13 +4,9 @@
 \alias{lik_pw}
 \title{Point-wise Probability Density Approximation}
 \usage{
-lik_pw(y, yhat, h = 0, m = 0.8, n = 0L)
+lik_pw(x, xtilde, h = 0, m = 0.8, n = 0L)
 }
 \arguments{
-\item{y}{a vector storing empirical observations (e.g., RTs).}
-
-\item{yhat}{a vector storing simulations.}
-
 \item{h}{kernel bandwidth. Default value is 0.8 times Silverman's Rule of
 Thumb, based on simulated data (i.e., yhat).}
 
@@ -19,6 +15,10 @@ Thumb, based on simulated data (i.e., yhat).}
 \item{n}{the number of simulation. When n=0, where the function will count
 the numbers of observation in the simulated histogram. If simulating 
 a defective distribution, one should enter the simulation numbers.}
+
+\item{y}{a vector storing empirical observations (e.g., RTs).}
+
+\item{yhat}{a vector storing simulations.}
 
 \item{parallel}{a switch for parallel processing via OMP. Default is FALSE.}
 }

@@ -1,40 +1,47 @@
-#' Compute Likelihood, using FFT method
+#' Use Traditional KDE or Silverman's KDE-FFT Method to Calculate Likelihood
 #' 
-#' \code{lik_fft2} uses an identical algorithm as \code{logLik_fft}, but
-#' return a matrix. Differing from \code{lik_pw}, \code{lik_fft2}
-#' and \code{logLik_fft},
+#' Our KDE-FFT method uses the following steps to calculate likelihood:
 #' \enumerate{
-#' \item takes Monte Carlo simulations,
-#' \item transforms them to spectral domain using FFT,
-#' \item applies a standard Gaussian kernel to smooth them,
-#' \item transforms them back to signal domain and
-#' \item interpolates linearly the simulation histogram to the observation 
-#' to obtain estimated likelihoods.
+#' \item draws Monte Carlo simulations to construct a simulated histogram,
+#' \item uses FFT to transform the histogram to spectral domain,
+#' \item applies standard Gaussian kernels to smooth it,
+#' \item uses inverse FFT to get simulated PDF, and
+#' \item interpolates data linearly on the sPDF to obtain likelihood.
 #' }
 #' 
-#' @param y a vector storing empirical data.
-#' @param x a vector storing simulated data (e.g., \code{rnorm(100)}).
-#' @param h the bandwidth for kernel density estimation. If not given,
-#' Sliverman's rule of thumb will be used.
-#' @param m a multiplier to adjust \code{h} proportationally. Default is 0.8.
-#' @param p a precision parameter defines the number of grid as power of 2.
-#' Default value is 10 (i.e., 2^10).
-#' @param n the numbers of simulation. When n=0, where the function will count
-#' the numbers of observation in the simulated histogram. If simulating 
-#' a defective distribution, one should always enter the simulation numbers. 
+#' Although \code{stats::density} also uses KDE-FFT method, our method includes
+#' simulation and interpolation steps. 
+#'   
+#' @param xtilde vector of simulations.
+#' @param x vector of data.
+#' @param h the bandwidth for KDE. If not given, the function uses Silverman's 
+#' \sQuote{rule of thumb}, Silverman (1986, page 48, eqn (3.31)).
+#' @param m a multiplier to adjust bandwidth proportationally. Default is 0.8.
+#' @param p a precision parameter defining the number of grid as power of 2. 
+#' The default grid size is 1024. That p is set at 10 (i.e., 2^10).
+#' @param N_s number of simulations. This is to adapt the simulation when one
+#' uses PDA to calculate likelihood in a defective probability density function,
+#' such as the LBA model or the DDM.  The function will count the number of 
+#' simulations from \code{xtilde}.  If \code{xtilde} stores simulations from a 
+#' a defective distribution, one has to supply N_s. 
 #' @param pw whether to calculate gaussian kernel directly or using FFT 
-#' algorithm
+#' algorithm. \eqn{pw = FALSE} uses KDE-FFT method.
 #' @return A vector.
 #' @references Holmes, W. (2015). A practical guide to the Probability Density
 #' Approximation (PDA) with improved implementation and error characterization.
 #' \emph{Journal of Mathematical Psychology}, \bold{68-69}, 13--24,
-#' doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
+#' \url{https://dx.doi.org/10.1016/j.jmp.2015.08.006}. \cr
+#' 
+#' Silverman, B. W. (1982). Algorithm as 176: Kernel density estimation using
+#' the fast Fourier transform. Journal of the Royal Statistical Society. Series
+#' C (Applied Statistics), 31(1), 93-99. \url{https://dx.doi.org/10.2307/2347084}. 
+#' 
 #' @seealso
-#' \code{\link{logLik_pw}}, \code{\link{logLik_fft}},
+#' \code{\link{density}}, \code{\link[MASS]{bandwidth.nrd}}, 
 #' \code{\link{bw.nrd}}, \code{\link{bandwidth.nrd}}.
 #' @examples
 #' ###################
-##' ## Example 1     ##
+#' ## Example 1     ##
 #' ###################
 #' x   <- seq(-3, 3, length.out=100) ## Data
 #' sam <- rnorm(1e5)              ## Monte Carlo simulation
@@ -100,16 +107,16 @@
 #' df2 <- df0[df0[,2]==2,]
 #' den1 <- df1[order(df1[,1]),3]
 #' den2 <- df2[order(df2[,1]),3]
-#' plot(srt1,  den0, type="l")
+#' plot(srt1,  den1, type="l")
 #' lines(srt2, den1)
 #' lines(srt1, fft1, col="red")
 #' lines(srt2, fft2, col="red")
 #' @export
-likelihood <- function(x, y, h=0, m=.8, p=10, n=0, pw=FALSE) {
+likelihood <- function(xtilde, x, h = 0, m = .8, p = 10, N_s = 0, pw = FALSE) {
   if (pw) {
-    out <- as.vector(lik_pw(x, y, h, m, n))
+    out <- lik_pw(xtilde, x, h, m, N_s)[,1]
   } else {
-    out <- as.vector(lik_fft(x, y, h, m, p, n))
+    out <- lik_fft(xtilde, x, h, m, p, N_s)[,1]
   }
   return(out)
 }

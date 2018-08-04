@@ -1,40 +1,34 @@
 #include <cpda.hpp>
 
-inline double gaussian(double y, arma::vec yhat, double h) {
-  int ns = yhat.n_elem;
-  arma::vec result(ns);
+//' @export
+// [[Rcpp::export]]
+double gaussian(double x, arma::vec xtilde, double h) {
+  unsigned int N_s = xtilde.n_elem; // See p14, equation (2.1) in Holmes (2015)
+  double z, res = 0;
   
-  for(arma::vec::iterator it=yhat.begin(); it!=yhat.end(); ++it)
-  {
-    int i = std::distance(yhat.begin(), it);     // (1/h) * K(z/h); K_h(z)
-    result[i] = ( (1/(sqrt(2.0*arma::datum::pi))) * 
-      exp( -pow((y - *it)/h, 2.0) / 2.0 ) ) / h; // h is inside and outside
+  for (size_t i = 0; i < N_s; i++) {
+    z = (x - xtilde(i))/h;
+    res += (1/(SQRT_2PI*h)) * exp(-0.5*z*z); 
   }
-  // (1/N_s) * sigma K_h (x-x.tidle_j)
-  return ( arma::accu(result) / ns);
+  return res/N_s;
 }
 
 //' @export
 // [[Rcpp::export]]
-arma::vec lik_fft(arma::vec y, arma::vec yhat, double h=0,
-                      double m=0.8, double p=10, int n=0) {
-  if (h==0) { h = bwNRD0(yhat, m); } else { h = m*h; }
-
+arma::vec lik_fft(arma::vec y, arma::vec yhat, double h = 0,
+                  double m = 0.8, double p = 10, unsigned int n = 0) {
   double z0, z1;
-  arma::vec y_, yhat_, z, filter, signal, PDF0, PDF, PDF_, PDF_unsorted;
-  arma::mat PDFMat;
-  arma::uvec y_idx;
+  arma::vec z, filter, signal, PDF0, PDF;
   
-  z0     = y.min() - 3 * h;
-  z1     = y.max() + 3 * h;
+  h      = (h == 0) ? bwNRD0(yhat, m) : h*m;
+  z0     = y.min() - 3.0 * h;
+  z1     = y.max() + 3.0 * h;
   z      = arma::linspace<arma::vec>(z0, z1, 1<<(int)p) ;
   filter = getFilter(z0, z1, h, p) ;  // Gauss filter
   signal = histd(yhat, z, n) ;
   PDF0   = arma::real(arma::ifft(filter % arma::fft(signal))) ; // smoothed
-  
   arma::interp1(z, PDF0, y, PDF);
-  PDF_ = pmax(PDF, std::pow(10, -5)) ;
-  return PDF_;
+  return pmax(PDF, std::pow(10, -5)) ;
 }
 
 
@@ -196,20 +190,18 @@ arma::vec lik_fft(arma::vec y, arma::vec yhat, double h=0,
 //' 
 //' @export
 // [[Rcpp::export]]
-arma::vec lik_pw(arma::vec y, arma::vec yhat, double h=0, double m=0.8, 
-  int n=0) 
+arma::vec lik_pw(arma::vec x, arma::vec xtilde, double h = 0, double m = 0.8, 
+  unsigned int n = 0) 
 {
-  double prop;
-  int nobs = y.n_elem;
-  int nsim = yhat.n_elem;
-  arma::vec out(nobs);
-  if (h == 0) { h = bwNRD0(yhat, m); } else { h = m * h; }
-  if (n > 0) { prop = (double)nsim/(double)n; }
+  unsigned int N_s = xtilde.n_elem;
+  arma::vec out(x.n_elem);
+  h = (h == 0) ? bwNRD0(xtilde, m) : h*m;
 
-  for(int i=0; i< nobs; i++)
-  {
-      out[i] = (n == 0) ? gaussian(y[i], yhat, h) : 
-      prop * gaussian(y[i], yhat, h);
+  for (size_t i = 0; i < x.n_elem; i++) {
+    double den = gaussian(x(i), xtilde, h);
+    // If n == 0 (non-defective likelihood), return den; otherwise return 
+    // den / den * (N_s / n)
+    out(i) = (n == 0) ? den : den * ((double)N_s/(double)n);
   }
   return out;
 }
@@ -219,7 +211,8 @@ arma::vec lik_pw(arma::vec y, arma::vec yhat, double h=0, double m=0.8,
 //' @export
 // [[Rcpp::export]]
 arma::vec n1PDF(arma::vec x, int nsim, double b, double A, arma::vec mean_v, 
-  arma::vec sd_v, double t0, double k = 0.09) {
+  arma::vec sd_v, double t0, double h_in = 0, double k = 0.09, 
+  bool debug = false) {
   // rlba_n1
   arma::vec sim = rlba_n1(nsim, b, A, mean_v, sd_v, t0);
   int nx = x.n_elem;
@@ -231,10 +224,10 @@ arma::vec n1PDF(arma::vec x, int nsim, double b, double A, arma::vec mean_v,
   } else {
     double minRT0 = sim.min();
     double maxRT0 = sim.max();
-    double sd     = arma::stddev(sim); 
-
-    double h  = k*sd*std::pow(nsim, -0.2);
-    double z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
+    double h  = (h_in == 0) ? (k*arma::stddev(sim)*std::pow(nsim, -0.2)) : h_in;
+    if (debug) {Rcpp::Rcout << "h: " << h << std::endl; }
+    double z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; 
+    if (z0 < 0) z0 = 0;
     double z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
     int ngrid = 1024;
     int half_ngrid  = 0.5*ngrid;

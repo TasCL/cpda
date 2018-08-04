@@ -6,93 +6,22 @@
 
 using namespace Rcpp;
 
-// logLik_prior
-double logLik_prior(arma::vec pVec);
-RcppExport SEXP cpda_logLik_prior(SEXP pVecSEXP) {
+// gaussian
+double gaussian(double x, arma::vec xtilde, double h);
+RcppExport SEXP _cpda_gaussian(SEXP xSEXP, SEXP xtildeSEXP, SEXP hSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
-    rcpp_result_gen = Rcpp::wrap(logLik_prior(pVec));
-    return rcpp_result_gen;
-END_RCPP
-}
-// logLik_prior_test
-double logLik_prior_test(arma::vec pVec);
-RcppExport SEXP cpda_logLik_prior_test(SEXP pVecSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
-    rcpp_result_gen = Rcpp::wrap(logLik_prior_test(pVec));
-    return rcpp_result_gen;
-END_RCPP
-}
-// gammavec
-arma::vec gammavec(int npar, double gammamult);
-RcppExport SEXP cpda_gammavec(SEXP nparSEXP, SEXP gammamultSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type npar(nparSEXP);
-    Rcpp::traits::input_parameter< double >::type gammamult(gammamultSEXP);
-    rcpp_result_gen = Rcpp::wrap(gammavec(npar, gammamult));
-    return rcpp_result_gen;
-END_RCPP
-}
-// pickchains
-arma::vec pickchains(int k, int n, std::vector<int> chains);
-RcppExport SEXP cpda_pickchains(SEXP kSEXP, SEXP nSEXP, SEXP chainsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type k(kSEXP);
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< std::vector<int> >::type chains(chainsSEXP);
-    rcpp_result_gen = Rcpp::wrap(pickchains(k, n, chains));
-    return rcpp_result_gen;
-END_RCPP
-}
-// crossover
-arma::mat crossover(arma::mat theta, double gammamult, double rp);
-RcppExport SEXP cpda_crossover(SEXP thetaSEXP, SEXP gammamultSEXP, SEXP rpSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< double >::type gammamult(gammamultSEXP);
-    Rcpp::traits::input_parameter< double >::type rp(rpSEXP);
-    rcpp_result_gen = Rcpp::wrap(crossover(theta, gammamult, rp));
-    return rcpp_result_gen;
-END_RCPP
-}
-// getsubchains
-arma::vec getsubchains(int nchain);
-RcppExport SEXP cpda_getsubchains(SEXP nchainSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type nchain(nchainSEXP);
-    rcpp_result_gen = Rcpp::wrap(getsubchains(nchain));
-    return rcpp_result_gen;
-END_RCPP
-}
-// migration
-arma::mat migration(arma::mat theta, double gammamult, double rp);
-RcppExport SEXP cpda_migration(SEXP thetaSEXP, SEXP gammamultSEXP, SEXP rpSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< double >::type gammamult(gammamultSEXP);
-    Rcpp::traits::input_parameter< double >::type rp(rpSEXP);
-    rcpp_result_gen = Rcpp::wrap(migration(theta, gammamult, rp));
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type xtilde(xtildeSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(gaussian(x, xtilde, h));
     return rcpp_result_gen;
 END_RCPP
 }
 // lik_fft
-arma::vec lik_fft(arma::vec y, arma::vec yhat, double h, double m, double p, int n);
-RcppExport SEXP cpda_lik_fft(SEXP ySEXP, SEXP yhatSEXP, SEXP hSEXP, SEXP mSEXP, SEXP pSEXP, SEXP nSEXP) {
+arma::vec lik_fft(arma::vec y, arma::vec yhat, double h, double m, double p, unsigned int n);
+RcppExport SEXP _cpda_lik_fft(SEXP ySEXP, SEXP yhatSEXP, SEXP hSEXP, SEXP mSEXP, SEXP pSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -101,29 +30,29 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type h(hSEXP);
     Rcpp::traits::input_parameter< double >::type m(mSEXP);
     Rcpp::traits::input_parameter< double >::type p(pSEXP);
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
     rcpp_result_gen = Rcpp::wrap(lik_fft(y, yhat, h, m, p, n));
     return rcpp_result_gen;
 END_RCPP
 }
 // lik_pw
-arma::vec lik_pw(arma::vec y, arma::vec yhat, double h, double m, int n);
-RcppExport SEXP cpda_lik_pw(SEXP ySEXP, SEXP yhatSEXP, SEXP hSEXP, SEXP mSEXP, SEXP nSEXP) {
+arma::vec lik_pw(arma::vec x, arma::vec xtilde, double h, double m, unsigned int n);
+RcppExport SEXP _cpda_lik_pw(SEXP xSEXP, SEXP xtildeSEXP, SEXP hSEXP, SEXP mSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type yhat(yhatSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type xtilde(xtildeSEXP);
     Rcpp::traits::input_parameter< double >::type h(hSEXP);
     Rcpp::traits::input_parameter< double >::type m(mSEXP);
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(lik_pw(y, yhat, h, m, n));
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(lik_pw(x, xtilde, h, m, n));
     return rcpp_result_gen;
 END_RCPP
 }
 // n1PDF
-arma::vec n1PDF(arma::vec x, int nsim, double b, double A, arma::vec mean_v, arma::vec sd_v, double t0, double k);
-RcppExport SEXP cpda_n1PDF(SEXP xSEXP, SEXP nsimSEXP, SEXP bSEXP, SEXP ASEXP, SEXP mean_vSEXP, SEXP sd_vSEXP, SEXP t0SEXP, SEXP kSEXP) {
+arma::vec n1PDF(arma::vec x, int nsim, double b, double A, arma::vec mean_v, arma::vec sd_v, double t0, double h_in, double k, bool debug);
+RcppExport SEXP _cpda_n1PDF(SEXP xSEXP, SEXP nsimSEXP, SEXP bSEXP, SEXP ASEXP, SEXP mean_vSEXP, SEXP sd_vSEXP, SEXP t0SEXP, SEXP h_inSEXP, SEXP kSEXP, SEXP debugSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -134,25 +63,30 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type mean_v(mean_vSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type sd_v(sd_vSEXP);
     Rcpp::traits::input_parameter< double >::type t0(t0SEXP);
+    Rcpp::traits::input_parameter< double >::type h_in(h_inSEXP);
     Rcpp::traits::input_parameter< double >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(n1PDF(x, nsim, b, A, mean_v, sd_v, t0, k));
+    Rcpp::traits::input_parameter< bool >::type debug(debugSEXP);
+    rcpp_result_gen = Rcpp::wrap(n1PDF(x, nsim, b, A, mean_v, sd_v, t0, h_in, k, debug));
     return rcpp_result_gen;
 END_RCPP
 }
-// timesTwo
-Rcpp::NumericVector timesTwo(Rcpp::NumericVector x);
-RcppExport SEXP cpda_timesTwo(SEXP xSEXP) {
+// rtn_scalar
+double rtn_scalar(double mean, double sd, double l, double u);
+RcppExport SEXP _cpda_rtn_scalar(SEXP meanSEXP, SEXP sdSEXP, SEXP lSEXP, SEXP uSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(timesTwo(x));
+    Rcpp::traits::input_parameter< double >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< double >::type sd(sdSEXP);
+    Rcpp::traits::input_parameter< double >::type l(lSEXP);
+    Rcpp::traits::input_parameter< double >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(rtn_scalar(mean, sd, l, u));
     return rcpp_result_gen;
 END_RCPP
 }
-// dtn
-arma::vec dtn(arma::vec x, double mean, double sd, double lower, double upper, int lp);
-RcppExport SEXP cpda_dtn(SEXP xSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP lpSEXP) {
+// dtn_
+arma::vec dtn_(arma::vec x, double mean, double sd, double lower, double upper, bool lp);
+RcppExport SEXP _cpda_dtn_(SEXP xSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -161,29 +95,30 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type sd(sdSEXP);
     Rcpp::traits::input_parameter< double >::type lower(lowerSEXP);
     Rcpp::traits::input_parameter< double >::type upper(upperSEXP);
-    Rcpp::traits::input_parameter< int >::type lp(lpSEXP);
-    rcpp_result_gen = Rcpp::wrap(dtn(x, mean, sd, lower, upper, lp));
+    Rcpp::traits::input_parameter< bool >::type lp(lpSEXP);
+    rcpp_result_gen = Rcpp::wrap(dtn_(x, mean, sd, lower, upper, lp));
     return rcpp_result_gen;
 END_RCPP
 }
-// rtn
-arma::vec rtn(int n, arma::vec mean, arma::vec sd, arma::vec lower, arma::vec upper);
-RcppExport SEXP cpda_rtn(SEXP nSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
+// dtn
+arma::vec dtn(arma::vec x, arma::vec mean, arma::vec sd, arma::vec lower, arma::vec upper, bool log);
+RcppExport SEXP _cpda_dtn(SEXP xSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type mean(meanSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type sd(sdSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type lower(lowerSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type upper(upperSEXP);
-    rcpp_result_gen = Rcpp::wrap(rtn(n, mean, sd, lower, upper));
+    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
+    rcpp_result_gen = Rcpp::wrap(dtn(x, mean, sd, lower, upper, log));
     return rcpp_result_gen;
 END_RCPP
 }
-// ptn
-arma::vec ptn(arma::vec q, double mean, double sd, double lower, double upper, int lt, int lp);
-RcppExport SEXP cpda_ptn(SEXP qSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP ltSEXP, SEXP lpSEXP) {
+// ptn_
+arma::vec ptn_(arma::vec q, double mean, double sd, double lower, double upper, bool lt, bool lp);
+RcppExport SEXP _cpda_ptn_(SEXP qSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP ltSEXP, SEXP lpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -192,15 +127,174 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type sd(sdSEXP);
     Rcpp::traits::input_parameter< double >::type lower(lowerSEXP);
     Rcpp::traits::input_parameter< double >::type upper(upperSEXP);
-    Rcpp::traits::input_parameter< int >::type lt(ltSEXP);
-    Rcpp::traits::input_parameter< int >::type lp(lpSEXP);
+    Rcpp::traits::input_parameter< bool >::type lt(ltSEXP);
+    Rcpp::traits::input_parameter< bool >::type lp(lpSEXP);
+    rcpp_result_gen = Rcpp::wrap(ptn_(q, mean, sd, lower, upper, lt, lp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ptn
+arma::vec ptn(arma::vec q, arma::vec mean, arma::vec sd, arma::vec lower, arma::vec upper, bool lt, bool lp);
+RcppExport SEXP _cpda_ptn(SEXP qSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP ltSEXP, SEXP lpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type q(qSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sd(sdSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lower(lowerSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type upper(upperSEXP);
+    Rcpp::traits::input_parameter< bool >::type lt(ltSEXP);
+    Rcpp::traits::input_parameter< bool >::type lp(lpSEXP);
     rcpp_result_gen = Rcpp::wrap(ptn(q, mean, sd, lower, upper, lt, lp));
     return rcpp_result_gen;
 END_RCPP
 }
+// rtnorm
+arma::vec rtnorm(unsigned int n, double mean, double sd, double lower, double upper);
+RcppExport SEXP _cpda_rtnorm(SEXP nSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< double >::type sd(sdSEXP);
+    Rcpp::traits::input_parameter< double >::type lower(lowerSEXP);
+    Rcpp::traits::input_parameter< double >::type upper(upperSEXP);
+    rcpp_result_gen = Rcpp::wrap(rtnorm(n, mean, sd, lower, upper));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dexGAUS
+arma::vec dexGAUS(arma::vec x, arma::vec mu, arma::vec sigma, arma::vec tau, bool log);
+RcppExport SEXP _cpda_dexGAUS(SEXP xSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP tauSEXP, SEXP logSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
+    rcpp_result_gen = Rcpp::wrap(dexGAUS(x, mu, sigma, tau, log));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pexGAUS
+arma::vec pexGAUS(arma::vec q, arma::vec mu, arma::vec sigma, arma::vec tau, bool lt, bool lp);
+RcppExport SEXP _cpda_pexGAUS(SEXP qSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP tauSEXP, SEXP ltSEXP, SEXP lpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type q(qSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< bool >::type lt(ltSEXP);
+    Rcpp::traits::input_parameter< bool >::type lp(lpSEXP);
+    rcpp_result_gen = Rcpp::wrap(pexGAUS(q, mu, sigma, tau, lt, lp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// qexGAUS
+arma::vec qexGAUS(arma::vec p, arma::vec mu, arma::vec sigma, arma::vec tau, bool lt, bool lp);
+RcppExport SEXP _cpda_qexGAUS(SEXP pSEXP, SEXP muSEXP, SEXP sigmaSEXP, SEXP tauSEXP, SEXP ltSEXP, SEXP lpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type p(pSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< bool >::type lt(ltSEXP);
+    Rcpp::traits::input_parameter< bool >::type lp(lpSEXP);
+    rcpp_result_gen = Rcpp::wrap(qexGAUS(p, mu, sigma, tau, lt, lp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dinvGAUS
+arma::vec dinvGAUS(arma::vec x, arma::vec mu, arma::vec lambda, bool log);
+RcppExport SEXP _cpda_dinvGAUS(SEXP xSEXP, SEXP muSEXP, SEXP lambdaSEXP, SEXP logSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
+    rcpp_result_gen = Rcpp::wrap(dinvGAUS(x, mu, lambda, log));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pinvGAUS
+arma::vec pinvGAUS(arma::vec q, arma::vec mu, arma::vec lambda, bool lt, bool lp);
+RcppExport SEXP _cpda_pinvGAUS(SEXP qSEXP, SEXP muSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type q(qSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< bool >::type lt(ltSEXP);
+    Rcpp::traits::input_parameter< bool >::type lp(lpSEXP);
+    rcpp_result_gen = Rcpp::wrap(pinvGAUS(q, mu, lambda, lt, lp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// qinvGAUS
+arma::vec qinvGAUS(arma::vec p, arma::vec mu, arma::vec lambda, bool lt, bool lp);
+RcppExport SEXP _cpda_qinvGAUS(SEXP pSEXP, SEXP muSEXP, SEXP lambdaSEXP, SEXP ltSEXP, SEXP lpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type p(pSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< bool >::type lt(ltSEXP);
+    Rcpp::traits::input_parameter< bool >::type lp(lpSEXP);
+    rcpp_result_gen = Rcpp::wrap(qinvGAUS(p, mu, lambda, lt, lp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rinvGAUS_
+arma::vec rinvGAUS_(unsigned int n, double mu, double lambda);
+RcppExport SEXP _cpda_rinvGAUS_(SEXP nSEXP, SEXP muSEXP, SEXP lambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rinvGAUS_(n, mu, lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rinvGAUS
+arma::vec rinvGAUS(unsigned int n, arma::vec mu, arma::vec lambda);
+RcppExport SEXP _cpda_rinvGAUS(SEXP nSEXP, SEXP muSEXP, SEXP lambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type lambda(lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rinvGAUS(n, mu, lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
+// InvG
+void InvG(NumericVector x);
+RcppExport SEXP _cpda_InvG(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    InvG(x);
+    return R_NilValue;
+END_RCPP
+}
 // rlba
 arma::mat rlba(int n, double b, double A, arma::vec mean_v, arma::vec sd_v, double t0);
-RcppExport SEXP cpda_rlba(SEXP nSEXP, SEXP bSEXP, SEXP ASEXP, SEXP mean_vSEXP, SEXP sd_vSEXP, SEXP t0SEXP) {
+RcppExport SEXP _cpda_rlba(SEXP nSEXP, SEXP bSEXP, SEXP ASEXP, SEXP mean_vSEXP, SEXP sd_vSEXP, SEXP t0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -216,7 +310,7 @@ END_RCPP
 }
 // rlba_n1
 arma::vec rlba_n1(int n, double b, double A, arma::vec mean_v, arma::vec sd_v, double t0);
-RcppExport SEXP cpda_rlba_n1(SEXP nSEXP, SEXP bSEXP, SEXP ASEXP, SEXP mean_vSEXP, SEXP sd_vSEXP, SEXP t0SEXP) {
+RcppExport SEXP _cpda_rlba_n1(SEXP nSEXP, SEXP bSEXP, SEXP ASEXP, SEXP mean_vSEXP, SEXP sd_vSEXP, SEXP t0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -230,9 +324,93 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rplba
+arma::mat rplba(int n, arma::vec pVec);
+RcppExport SEXP _cpda_rplba(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rplba1
+arma::mat rplba1(int n, arma::vec pVec);
+RcppExport SEXP _cpda_rplba1(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba1(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rplba2
+arma::mat rplba2(int n, arma::vec pVec);
+RcppExport SEXP _cpda_rplba2(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba2(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rplba3
+arma::mat rplba3(int n, arma::vec pVec);
+RcppExport SEXP _cpda_rplba3(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba3(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rplba4
+arma::mat rplba4(int n, arma::vec pVec);
+RcppExport SEXP _cpda_rplba4(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba4(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rplba5
+arma::mat rplba5(int n, arma::vec pVec);
+RcppExport SEXP _cpda_rplba5(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba5(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rplba6
+arma::mat rplba6(int n, arma::vec pVec);
+RcppExport SEXP _cpda_rplba6(SEXP nSEXP, SEXP pVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pVec(pVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(rplba6(n, pVec));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cquantile
 double cquantile(arma::vec y, double q);
-RcppExport SEXP cpda_cquantile(SEXP ySEXP, SEXP qSEXP) {
+RcppExport SEXP _cpda_cquantile(SEXP ySEXP, SEXP qSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -244,7 +422,7 @@ END_RCPP
 }
 // bwNRD0
 double bwNRD0(arma::vec y, double m);
-RcppExport SEXP cpda_bwNRD0(SEXP ySEXP, SEXP mSEXP) {
+RcppExport SEXP _cpda_bwNRD0(SEXP ySEXP, SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -256,7 +434,7 @@ END_RCPP
 }
 // histc
 arma::uvec histc(arma::vec x, arma::vec edge);
-RcppExport SEXP cpda_histc(SEXP xSEXP, SEXP edgeSEXP) {
+RcppExport SEXP _cpda_histc(SEXP xSEXP, SEXP edgeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -268,7 +446,7 @@ END_RCPP
 }
 // histd
 arma::vec histd(arma::vec yhat, arma::vec z, int n);
-RcppExport SEXP cpda_histd(SEXP yhatSEXP, SEXP zSEXP, SEXP nSEXP) {
+RcppExport SEXP _cpda_histd(SEXP yhatSEXP, SEXP zSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -281,7 +459,7 @@ END_RCPP
 }
 // getEdges
 arma::vec getEdges(arma::vec z);
-RcppExport SEXP cpda_getEdges(SEXP zSEXP) {
+RcppExport SEXP _cpda_getEdges(SEXP zSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -292,7 +470,7 @@ END_RCPP
 }
 // getFilter
 arma::vec getFilter(double m, double M, double h, double p);
-RcppExport SEXP cpda_getFilter(SEXP mSEXP, SEXP MSEXP, SEXP hSEXP, SEXP pSEXP) {
+RcppExport SEXP _cpda_getFilter(SEXP mSEXP, SEXP MSEXP, SEXP hSEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -303,4 +481,47 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(getFilter(m, M, h, p));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_cpda_gaussian", (DL_FUNC) &_cpda_gaussian, 3},
+    {"_cpda_lik_fft", (DL_FUNC) &_cpda_lik_fft, 6},
+    {"_cpda_lik_pw", (DL_FUNC) &_cpda_lik_pw, 5},
+    {"_cpda_n1PDF", (DL_FUNC) &_cpda_n1PDF, 10},
+    {"_cpda_rtn_scalar", (DL_FUNC) &_cpda_rtn_scalar, 4},
+    {"_cpda_dtn_", (DL_FUNC) &_cpda_dtn_, 6},
+    {"_cpda_dtn", (DL_FUNC) &_cpda_dtn, 6},
+    {"_cpda_ptn_", (DL_FUNC) &_cpda_ptn_, 7},
+    {"_cpda_ptn", (DL_FUNC) &_cpda_ptn, 7},
+    {"_cpda_rtnorm", (DL_FUNC) &_cpda_rtnorm, 5},
+    {"_cpda_dexGAUS", (DL_FUNC) &_cpda_dexGAUS, 5},
+    {"_cpda_pexGAUS", (DL_FUNC) &_cpda_pexGAUS, 6},
+    {"_cpda_qexGAUS", (DL_FUNC) &_cpda_qexGAUS, 6},
+    {"_cpda_dinvGAUS", (DL_FUNC) &_cpda_dinvGAUS, 4},
+    {"_cpda_pinvGAUS", (DL_FUNC) &_cpda_pinvGAUS, 5},
+    {"_cpda_qinvGAUS", (DL_FUNC) &_cpda_qinvGAUS, 5},
+    {"_cpda_rinvGAUS_", (DL_FUNC) &_cpda_rinvGAUS_, 3},
+    {"_cpda_rinvGAUS", (DL_FUNC) &_cpda_rinvGAUS, 3},
+    {"_cpda_InvG", (DL_FUNC) &_cpda_InvG, 1},
+    {"_cpda_rlba", (DL_FUNC) &_cpda_rlba, 6},
+    {"_cpda_rlba_n1", (DL_FUNC) &_cpda_rlba_n1, 6},
+    {"_cpda_rplba", (DL_FUNC) &_cpda_rplba, 2},
+    {"_cpda_rplba1", (DL_FUNC) &_cpda_rplba1, 2},
+    {"_cpda_rplba2", (DL_FUNC) &_cpda_rplba2, 2},
+    {"_cpda_rplba3", (DL_FUNC) &_cpda_rplba3, 2},
+    {"_cpda_rplba4", (DL_FUNC) &_cpda_rplba4, 2},
+    {"_cpda_rplba5", (DL_FUNC) &_cpda_rplba5, 2},
+    {"_cpda_rplba6", (DL_FUNC) &_cpda_rplba6, 2},
+    {"_cpda_cquantile", (DL_FUNC) &_cpda_cquantile, 2},
+    {"_cpda_bwNRD0", (DL_FUNC) &_cpda_bwNRD0, 2},
+    {"_cpda_histc", (DL_FUNC) &_cpda_histc, 2},
+    {"_cpda_histd", (DL_FUNC) &_cpda_histd, 3},
+    {"_cpda_getEdges", (DL_FUNC) &_cpda_getEdges, 1},
+    {"_cpda_getFilter", (DL_FUNC) &_cpda_getFilter, 4},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_cpda(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

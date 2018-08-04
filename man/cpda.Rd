@@ -6,17 +6,36 @@
 \alias{cpda-package}
 \title{Probability Density Approximation}
 \description{
-This package implements probability density approximation in C++
+Uses Silverman's (1982) KDE-FFT method to fit probability densities. This
+package implements fast truncated-Gaussian, ex-Gaussian, inverse-Gaussian 
+distributions via GNU scientific library in Boost C++ libraries.
 }
 \references{
-Holmes, W. (2015). A practical guide to the Probability Density
-Approximation (PDA) with improved implementation and error characterization.
-\emph{Journal of Mathematical Psychology}, \bold{68-69}, 13--24,
-doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
+Cousineau, D., Brown, S. & Heathcote, A. (2004). Fitting distributions using
+maximum likelihood: Methods and packages. 
+\emph{Behavior Research Methods, Instruments, & Computers}  36(4), 742-756. 
+\url{https://doi.org/10.3758/BF03206555}. \cr
+
+Holmes, W. (2015). A practical guide to the Probability Density 
+Approximation with improved implementation and error characterization. 
+\emph{Journal of Mathematical Psychology}, 68-69, 13--24.
+\url{https://doi.org/10.1016/j.jmp.2015.08.006}. \cr
+
+Michael, J., Schucany, W., & Haas, R. (1976). Generating Random Variates 
+Using Transformations with Multiple Roots. \emph{The American Statistician},
+30(2), 88-90. \url{https://doi:10.2307/2683801} \cr
+
+Wheeler, B (2009). SuppDists: Supplementary Distributions. R package version
+1.1-9.4. \url{https://CRAN.R-project.org/package=SuppDists}. \cr
+
+Stasinopoulos, M. & Rigby, B. (2016). gamlss.dist: Distributions to be Used 
+for GAMLSS Modelling. R package version 5.0-0. 
+\url{https://CRAN.R-project.org/package=gamlss.dist}
 }
 \author{
-Yi-Shin Lin <yishin.lin@utas.edu.au> \cr
-Andrew Heathcote <andrew.heathcote@utas.edu.au> \cr
+Yi-Shin Lin <yishin.lin@utas.edu.au>, 
+Andrew Heathcote <andrew.heathcote@utas.edu.au>, &
 William Holmes <william.holmes@vanderbilt.edu>
 }
+\keyword{KDE}
 \keyword{cpda}
